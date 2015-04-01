@@ -19,7 +19,7 @@ To get changes into cloud-init, the process to follow is:
 
   - ``git commit``
 
-* Push to branch to http://review.openstack.org:
+* Push to http://review.openstack.org:
 
   - ``git-review``
 
