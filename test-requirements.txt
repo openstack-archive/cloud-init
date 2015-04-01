@@ -1,3 +1,4 @@
 httpretty>=0.7.1
 mock
 nose
+testrepository>=0.0.18
