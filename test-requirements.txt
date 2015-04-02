@@ -5,6 +5,7 @@
 httpretty>=0.7.1
 mock
 nose
+testtools
 
 # For doc building
 sphinx>=1.1.2,!=1.2.0,!=1.3b1,<1.3
