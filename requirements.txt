@@ -10,3 +10,4 @@ pyyaml
 jsonpatch
 requests>=1.0
 requests-oauthlib
+jinja2
