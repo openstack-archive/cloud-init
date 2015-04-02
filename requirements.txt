@@ -8,3 +8,4 @@ pyyaml
 jsonpatch
 requests
 requests-oauthlib
+jinja2
