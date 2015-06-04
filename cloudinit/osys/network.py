@@ -74,6 +74,10 @@ class Route(object):
         self.use = use
         self.expire = expire
 
+    def __repr__(self):
+        return ("Route(destination={!r}, gateway={!r}, netmask={!r})"
+                .format(self.destination, self.gateway, self.netmask))
+
     @abc.abstractproperty
     def is_static(self):
         """Check if this route is static."""

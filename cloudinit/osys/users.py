@@ -51,7 +51,7 @@ class User(object):
     """Base class for an user."""
 
     @classmethod
-    def create(self, username, password, **kwargs):
+    def create(cls, username, password, **kwargs):
         """Create a new user."""
 
     @abc.abstractmethod
