@@ -11,7 +11,11 @@ from ctypes import wintypes
 import logging
 import subprocess
 
+from six.moves.urllib import parse
+from six.moves.urllib import request
+
 from cloudinit import exceptions
+from cloudinit.osys import base
 from cloudinit.osys import network
 from cloudinit.osys.windows.util import iphlpapi
 from cloudinit.osys.windows.util import kernel32
@@ -26,6 +30,7 @@ _PROTOCOL_TCP = "TCP"
 _PROTOCOL_UDP = "UDP"
 _ERROR_FILE_NOT_FOUND = 2
 _ComputerNamePhysicalDnsHostname = 5
+_MAX_URL_CHECK_RETRIES = 3
 LOG = logging.getLogger(__file__)
 
 
@@ -35,6 +40,17 @@ def _heap_alloc(heap, size):
         raise exceptions.CloudInitError(
             'Unable to allocate memory for the IP forward table')
     return table_mem
+
+
+def _check_url(url, retries_count=_MAX_URL_CHECK_RETRIES):
+    for _ in range(retries_count):
+        try:
+            LOG.debug("Testing url: %s", url)
+            request.urlopen(url)
+            return True
+        except Exception:
+            pass
+    return False
 
 
 class Network(network.Network):
@@ -109,6 +125,39 @@ class Network(network.Network):
         """
         return next((r for r in self.routes() if r.destination == '0.0.0.0'),
                     None)
+
+    def set_metadata_ip_route(self, metadata_url):
+        """Set a network route if the given metadata url can't be accessed.
+
+        This is a workaround for https://bugs.launchpad.net/quantum/+bug/1174657.
+        """
+        osutils = base.get_osutils()
+
+        if osutils.check_os_version(6, 0):
+            # 169.254.x.x addresses are not getting routed starting from
+            # Windows Vista / 2008
+            metadata_netloc = parse.urlparse(metadata_url).netloc
+            metadata_host = metadata_netloc.split(':')[0]
+
+            if not metadata_host.startswith("169.254."):
+                return
+
+            routes = self.routes()
+            if metadata_host in routes and not _check_url(metadata_url):
+                default_gateway = self.default_gateway()
+                if default_gateway:
+                    try:
+                        LOG.debug('Setting gateway for host: %s',
+                                  metadata_host)
+                        route = Route(
+                            destination=metadata_host,
+                            netmask="255.255.255.255",
+                            gateway=default_gateway.destination,
+                            interface=None, metric=None)
+                        Route.add(route)
+                    except Exception as ex:
+                        # Ignore it
+                        LOG.exception(ex)
 
     # These are not required by the Windows version for now,
     # but we provide them as noop version.
