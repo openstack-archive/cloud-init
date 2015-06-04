@@ -8,6 +8,7 @@ import subprocess
 import unittest
 
 from cloudinit import exceptions
+from cloudinit.tests.util import LogSnatcher
 from cloudinit.tests.util import mock
 
 
@@ -15,7 +16,7 @@ class TestNetworkWindows(unittest.TestCase):
 
     def setUp(self):
         self._ctypes_mock = mock.MagicMock()
-        self._moves_mock = mock.Mock()
+        self._winreg_mock = mock.Mock()
         self._win32com_mock = mock.Mock()
         self._wmi_mock = mock.Mock()
 
@@ -24,7 +25,7 @@ class TestNetworkWindows(unittest.TestCase):
             {'ctypes': self._ctypes_mock,
              'win32com': self._win32com_mock,
              'wmi': self._wmi_mock,
-             'six.moves': self._moves_mock})
+             'six.moves.winreg': self._winreg_mock})
 
         self._module_patcher.start()
         self._iphlpapi = mock.Mock()
@@ -251,3 +252,96 @@ class TestNetworkWindows(unittest.TestCase):
         self.assertEqual('dwForwardIfIndex', given_route.interface)
         self.assertEqual('dwForwardMetric1', given_route.metric)
         self.assertEqual('dwForwardProto', given_route.flags)
+
+    @mock.patch('cloudinit.osys.windows.general.General.check_os_version')
+    @mock.patch('cloudinit.osys.windows.network.Network.routes')
+    def test_set_metadata_ip_route_not_called(self, mock_routes,
+                                              mock_check_os_version):
+        mock_check_os_version.return_value = False
+
+        self._network.set_metadata_ip_route(mock.sentinel.url)
+
+        self.assertFalse(mock_routes.called)
+        mock_check_os_version.assert_called_once_with(6, 0)
+
+    @mock.patch('cloudinit.osys.windows.general.General.check_os_version')
+    @mock.patch('cloudinit.osys.windows.network.Network.routes')
+    def test_set_metadata_ip_route_not_invalid_url(self, mock_routes,
+                                                   mock_check_os_version):
+        mock_check_os_version.return_value = True
+
+        self._network.set_metadata_ip_route("http://169.253.169.253")
+
+        self.assertFalse(mock_routes.called)
+        mock_check_os_version.assert_called_once_with(6, 0)
+
+    @mock.patch('cloudinit.osys.windows.network.Network.routes')
+    @mock.patch('cloudinit.osys.windows.network.Network.default_gateway')
+    def test_set_metadata_ip_route_route_already_exists(
+            self, mock_default_gateway, mock_routes):
+
+        mock_route = mock.Mock()
+        mock_route.destination = "169.254.169.254"
+        mock_routes.return_value = (mock_route, )
+
+        self._network.set_metadata_ip_route("http://169.254.169.254")
+
+        self.assertTrue(mock_routes.called)
+        self.assertFalse(mock_default_gateway.called)
+
+    @mock.patch('cloudinit.osys.windows.network._check_url')
+    @mock.patch('cloudinit.osys.windows.network.Network.routes')
+    @mock.patch('cloudinit.osys.windows.network.Network.default_gateway')
+    def test_set_metadata_ip_route_route_missing_url_accessible(
+            self, mock_default_gateway, mock_routes, mock_check_url):
+
+        mock_routes.return_value = ()
+        mock_check_url.return_value = True
+
+        self._network.set_metadata_ip_route("http://169.254.169.254")
+
+        self.assertTrue(mock_routes.called)
+        self.assertFalse(mock_default_gateway.called)
+
+    @mock.patch('cloudinit.osys.windows.network._check_url')
+    @mock.patch('cloudinit.osys.windows.network.Network.routes')
+    @mock.patch('cloudinit.osys.windows.network.Network.default_gateway')
+    @mock.patch('cloudinit.osys.windows.network.Route')
+    def test_set_metadata_ip_route_no_default_gateway(
+            self, mock_Route, mock_default_gateway,
+            mock_routes, mock_check_url):
+
+        mock_routes.return_value = ()
+        mock_check_url.return_value = False
+        mock_default_gateway.return_value = None
+
+        self._network.set_metadata_ip_route("http://169.254.169.254")
+
+        self.assertTrue(mock_routes.called)
+        self.assertTrue(mock_default_gateway.called)
+        self.assertFalse(mock_Route.called)
+
+    @mock.patch('cloudinit.osys.windows.network._check_url')
+    @mock.patch('cloudinit.osys.windows.network.Network.routes')
+    @mock.patch('cloudinit.osys.windows.network.Network.default_gateway')
+    @mock.patch('cloudinit.osys.windows.network.Route')
+    def test_set_metadata_ip_route(
+            self, mock_Route, mock_default_gateway,
+            mock_routes, mock_check_url):
+
+        mock_routes.return_value = ()
+        mock_check_url.return_value = False
+
+        with LogSnatcher('cloudinit.osys.windows.network') as snatcher:
+            self._network.set_metadata_ip_route("http://169.254.169.254")
+
+        expected = ['Setting gateway for host: 169.254.169.254']
+        self.assertEqual(expected, snatcher.output)
+        self.assertTrue(mock_routes.called)
+        self.assertTrue(mock_default_gateway.called)
+        mock_Route.assert_called_once_with(
+            destination="169.254.169.254",
+            netmask="255.255.255.255",
+            gateway=mock_default_gateway.return_value.gateway,
+            interface=None, metric=None)
+        mock_Route.add.assert_called_once_with(mock_Route.return_value)

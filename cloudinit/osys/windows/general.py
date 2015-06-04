@@ -52,8 +52,8 @@ class General(general.General):
     def reboot(self):
         raise NotImplementedError
 
-    def set_locale(self):
+    def set_locale(self, locale):
         raise NotImplementedError
 
-    def set_timezone(self):
+    def set_timezone(self, timezone):
         raise NotImplementedError
