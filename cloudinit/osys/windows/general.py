@@ -6,10 +6,30 @@
 """General utilities for Windows platform."""
 
 import ctypes
+import logging
+
+from six.moves.urllib import parse
+from six.moves.urllib import request
 
 from cloudinit import exceptions
+from cloudinit.osys import base
 from cloudinit.osys import general
 from cloudinit.osys.windows.util import kernel32
+
+
+LOG = logging.getLogger(__name__)
+MAX_URL_CHECK_RETRIES = 3
+
+
+def _check_url(url, retries_count=MAX_URL_CHECK_RETRIES):
+    for _ in range(retries_count):
+        try:
+            LOG.debug("Testing url: %s", url)
+            request.urlopen(url)
+            return True
+        except Exception:
+            pass
+    return False
 
 
 class General(general.General):
@@ -52,8 +72,40 @@ class General(general.General):
     def reboot(self):
         raise NotImplementedError
 
-    def set_locale(self):
+    def set_locale(self, locale):
         raise NotImplementedError
 
-    def set_timezone(self):
+    def set_timezone(self, timezone):
         raise NotImplementedError
+
+    def set_metadata_ip_route(self, metadata_url):
+        """Set a network route if the given metadata url can't be accessed.
+
+        This is a workaround for https://bugs.launchpad.net/quantum/+bug/1174657.
+        """
+        osutils = base.get_osutils()
+
+        if self.check_os_version(6, 0):
+            # 169.254.x.x addresses are not getting routed starting from
+            # Windows Vista / 2008
+            metadata_netloc = parse.urlparse(metadata_url).netloc
+            metadata_host = metadata_netloc.split(':')[0]
+
+            if not metadata_host.startswith("169.254."):
+                return
+
+            routes = osutils.network.routes()
+            if metadata_host in routes and not _check_url(metadata_url):
+                default_gateway = osutils.network.default_gateway()
+                if default_gateway:
+                    try:
+                        LOG.debug('Setting gateway for host: %s',
+                                  metadata_host)
+                        route = osutils.route_class(
+                            destination=metadata_host,
+                            netmask="255.255.255.255",
+                            gateway=default_gateway.destination)
+                        osutils.route_class.add(route)
+                    except Exception as ex:
+                        # Ignore it
+                        LOG.exception(ex)
