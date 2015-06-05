@@ -1,3 +1,4 @@
 .tox/
 cloudinit.egg-info/
 *.pyc
+doc/build
