@@ -1,3 +1,5 @@
 .tox/
 cloudinit.egg-info/
 *.pyc
+ChangeLog
+AUTHORS
