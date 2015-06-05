@@ -15,12 +15,8 @@
 
 import unittest
 
-try:
-    import unittest.mock as mock
-except ImportError:
-    import mock
-
 from cloudinit.osys import base
+from cloudinit.tests.util import mock
 
 
 class TestOSUtils(unittest.TestCase):
