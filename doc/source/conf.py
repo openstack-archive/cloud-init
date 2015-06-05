@@ -2,3 +2,4 @@
 # This file is part of cloud-init.  See LICENCE file for license information.
 #
 # vi: ts=4 expandtab
+extensions = ['sphinx.ext.autodoc']
