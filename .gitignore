@@ -3,3 +3,5 @@ cloudinit.egg-info/
 *.pyc
 doc/build
 doc/source/api/
+ChangeLog
+AUTHORS
