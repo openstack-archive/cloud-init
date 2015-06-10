@@ -8,5 +8,5 @@ pbr>=0.11,<2.0
 six>=1.7.0
 pyyaml
 jsonpatch
-requests
+requests>=1.0
 requests-oauthlib
