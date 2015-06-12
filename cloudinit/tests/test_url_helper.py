@@ -29,8 +29,10 @@ class UrlHelperWaitForUrlsTest(test.TestCase):
                                            url, body=b'no worky',
                                            status=400)
 
-        url = url_helper.wait_any_url(urls)
+        url, response = url_helper.wait_any_url(urls)
         self.assertEqual("http://www.yahoo.com", url)
+        self.assertIsInstance(response, url_helper.RequestsResponse)
+        self.assertEqual(response.contents, b'it worked!')
 
     @httpretty.activate
     def test_url_wait_for_no_work(self):

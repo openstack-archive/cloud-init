@@ -226,6 +226,9 @@ def wait_any_url(urls, max_wait=None, timeout=None,
     service but is not going to find one.  It is possible that the instance
     data host (169.254.169.254) may be firewalled off Entirely for a sytem,
     meaning that the connection will block forever unless a timeout is set.
+
+    This will return a tuple of the first url which succeeded and the
+    response object.
     """
     start_time = now()
 
@@ -268,7 +271,7 @@ def wait_any_url(urls, max_wait=None, timeout=None,
                     url_exc = UrlError(ValueError(reason), code=response.code,
                                        headers=response.headers)
                 else:
-                    return url
+                    return url, response
             except UrlError as e:
                 reason = "request error [%s]" % e
                 url_exc = e
