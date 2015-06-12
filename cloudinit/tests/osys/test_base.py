@@ -29,17 +29,24 @@ class TestOSUtils(unittest.TestCase):
                          linux=False):
         if linux:
             os_name = 'Linux'
+            mock_linux_distribution.return_value = (os_name, None, None)
         else:
             os_name = 'Windows'
+            mock_system.return_value = os_name
+            mock_linux_distribution.return_value = (None, None, None)
 
-        mock_system.return_value = os_name
-        mock_linux_distribution.return_value = (os_name, None, None)
         module = base.get_osutils()
 
         mock_import_module.assert_called_once_with(
             "cloudinit.osys.{0}.base".format(os_name.lower()))
         self.assertEqual(mock_import_module.return_value.OSUtils,
                          module)
+        if linux:
+            mock_linux_distribution.assert_called_once_with()
+            self.assertFalse(mock_system.called)
+        else:
+            mock_linux_distribution.assert_called_once_with()
+            mock_system.assert_called_once_with()
 
     def test_getosutils(self):
         self._test_getosutils(linux=True)
