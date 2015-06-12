@@ -77,7 +77,7 @@ class RequestsResponse(object):
     """A wrapper for requests responses (that provides common functions).
 
     This exists so that things like StringResponse or FileResponse can
-    also exist, but with different sources of there response (aka not
+    also exist, but with different sources of their response (aka not
     just from the requests library).
     """
 
@@ -143,19 +143,23 @@ def read_url(url, data=None, timeout=None, retries=0,
              check_status=True, allow_redirects=True):
     """Fetch a url (or post to one) with the given options.
 
-    url: url to fetch
-    data: any data to POST (this switches the request method to POST
-          instead of GET)
-    timeout: the timeout (in seconds) to wait for a response
-    headers: any headers to provide (and send along) in the request
-    ssl_details: a dictionary containing any ssl settings, cert_file,
-                 ca_certs and verify are valid entries (and they are only
-                 used when the url provided is https)
-    check_status: checks that the response status is OK after fetching (this
-                  ensures a exception is raised on non-OK status codes)
-    allow_redirects: enables redirects (or disables them)
-    retries: maximum number of retries to attempt when fetching the url and
-             the fetch fails
+    :param url: url to fetch
+    :param data:
+        any data to POST (this switches the request method to POST
+        instead of GET)
+    :param timeout: the timeout (in seconds) to wait for a response
+    :param headers: any headers to provide (and send along) in the request
+    :param ssl_details:
+        a dictionary containing any ssl settings, cert_file, ca_certs
+        and verify are valid entries (and they are only used when the
+        url provided is https)
+    :param check_status:
+        checks that the response status is OK after fetching (this
+        ensures a exception is raised on non-OK status codes)
+    :param allow_redirects: enables redirects (or disables them)
+    :param retries:
+        maximum number of retries to attempt when fetching the url and
+        the fetch fails
     """
     url = _clean_url(url)
     request_args = {
@@ -204,13 +208,15 @@ def wait_any_url(urls, max_wait=None, timeout=None,
                  exception_cb=None):
     """Wait for one of many urls to respond correctly.
 
-    urls:      a list of urls to try
-    max_wait:  roughly the maximum time to wait before giving up
-    timeout:   the timeout provided to ``read_url``
-    status_cb: call method with string message when a url is not available
-    exception_cb: call method with 2 arguments 'msg' (per status_cb) and
-                  'exception', the exception that occurred.
-    sleep_time: how long to sleep before trying each url again
+    :param urls: a list of urls to try
+    :param max_wait: roughly the maximum time to wait before giving up
+    :param timeout: the timeout provided to ``read_url``
+    :param status_cb:
+        call method with string message when a url is not available
+    :param exception_cb:
+        call method with 2 arguments 'msg' (per status_cb) and
+        'exception', the exception that occurred.
+    :param sleep_time: how long to sleep before trying each url again
 
     The idea of this routine is to wait for the EC2 metdata service to
     come up. On both Eucalyptus and EC2 we have seen the case where
