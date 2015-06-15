@@ -13,4 +13,5 @@ oslosphinx
 
 # For style checking
 hacking<0.11,>=0.10.0
+doc8
 coverage

@@ -10,7 +10,8 @@ Documentation
 Summary
 -----------------
 
-`Cloud-init`_ is the *defacto* multi-distribution package that handles early initialization of a cloud instance.
+`Cloud-init`_ is the *defacto* multi-distribution package that handles
+early initialization of a cloud instance.
 
 .. toctree::
     :maxdepth: 2
