@@ -23,6 +23,8 @@ To get changes into cloud-init, the process to follow is:
 
   - ``git-review``
 
+* Before your changes can be accepted, you must sign the `Canonical Contributors License Agreement`_.  Use 'Scott Moser' as the 'Project contact'.  To check to see if you've done this before, look for your name in the `Canonical Contributor Agreement Team`_ on Launchpad.
+
 Then be patient and wait (or ping someone on cloud-init team).
 
 * `Core reviewers/maintainers`_
@@ -38,3 +40,5 @@ Feel free to ping the folks listed above and/or join ``#cloud-init`` on
 .. _Core reviewers/maintainers: https://review.openstack.org/#/admin/groups/665,members
 .. _IRC: irc://chat.freenode.net/cloud-init
 .. _freenode: http://freenode.net/
+.. _Canonical Contributors License Agreement: http://www.ubuntu.com/legal/contributors
+.. _Canonical Contributor Agreement Team: https://launchpad.net/~contributor-agreement-canonical/+members#active
