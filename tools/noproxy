@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+#
+# clean http_proxy variables from environment as they make httpretty
+# fail, but may be in the environment for reasons such as pip install
+import os
+import sys
+
+for k in ('http_proxy', 'https_proxy', 'HTTP_PROXY', 'HTTPS_PROXY'):
+    if k in os.environ:
+        del os.environ[k]
+
+os.execvpe(sys.argv[1], sys.argv[1:], os.environ)
