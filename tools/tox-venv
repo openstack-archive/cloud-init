@@ -2,25 +2,51 @@
 
 error() { echo "$@" 1>&2; }
 fail() { [ $# -eq 0 ] || error "$@"; exit 1; }
+list_environments() {
+   local tox_d="$1" prefix="  "
+   echo "existing environments in $tox_d"
+   ( cd "$tox_d" &&
+     for d in *; do [ -f "$d/bin/activate" ] && echo "${prefix}$d"; done )
+}
+
 Usage() {
+   local tox_d="$1"
    cat <<EOF
 Usage: ${0##*/} tox-environment [command [args]]
    run command with provided arguments in the provided tox environment
    command defaults to \${SHELL:-/bin/sh}.
+
+   run with '--list' to show available environments
 EOF
+   if [ -d "$tox_d" ]; then
+      echo
+      list_environments "$tox_d"
+   fi
 }
 
-[ $# -eq 0 ] && { Usage 1>&2; exit 1; }
-[ "$1" = "-h" -o "$1" = "--help" ] && { Usage; exit 0; }
+if [ -f tox.ini -a -d .tox ]; then
+   tox_d="./.tox"
+else
+   tox_d="${0%/*}/../.tox"
+fi
+
+[ $# -eq 0 ] && { Usage "$tox_d" 1>&2; exit 1; }
+[ "$1" = "-h" -o "$1" = "--help" ] && { Usage "$tox_d"; exit 0; }
+
+[ -d "$tox_d" ] || fail "$tox_d: not a dir. maybe run 'tox'?"
+
+if [ "$1" = "-l" -o "$1" = "--list" ]; then
+   list_environments "$tox_d"
+   exit
+fi
 
 env="$1"
 shift
-tox_d="${0%/*}/../.tox"
 activate="$tox_d/$env/bin/activate"
 
-[ -d "$tox_d" ] || fail "$tox_d: not a dir. maybe run 'tox'?"
 if [ ! -f "$activate" ]; then
    error "$env: not a valid tox environment?"
+   error "found tox_d=$tox_d"
    error "try one of:"
    ( cd "$tox_d" &&
      for d in *; do [ -f "$d/bin/activate" ] && error "  $d"; done )
