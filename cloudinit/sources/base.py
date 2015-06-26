@@ -13,15 +13,34 @@ class APIResponse(object):
 
     To access the content in the binary format, use the
     `buffer` attribute, while the unicode content can be
-    accessed by calling `str` over this.
+    accessed by calling `str` over this (or by accessing
+    the `decoded_buffer` property).
     """
 
     def __init__(self, buffer, encoding="utf-8"):
-        self.buffer = buffer
+        self._buffer = buffer
         self._encoding = encoding
+        self._decoded_buffer = None
+
+    @property
+    def buffer(self):
+        return self._buffer
+
+    @property
+    def encoding(self):
+        return self._encoding
+
+    @property
+    def decoded_buffer(self):
+        # Avoid computing this again and again (although multiple threads
+        # may decode it if they all get in here at the same time, but meh
+        # thats ok).
+        if self._decoded_buffer is None:
+            self._decoded_buffer = self._buffer.decode(self._encoding)
+        return self._decoded_buffer
 
     def __str__(self):
-        return self.buffer.decode(self._encoding)
+        return self.decoded_buffer
 
 
 @six.add_metaclass(abc.ABCMeta)
