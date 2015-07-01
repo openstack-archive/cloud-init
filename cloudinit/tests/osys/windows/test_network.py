@@ -5,16 +5,18 @@
 
 import importlib
 import subprocess
-import unittest
 
 from cloudinit import exceptions
+from cloudinit import test
 from cloudinit.tests.util import LogSnatcher
 from cloudinit.tests.util import mock
 
 
-class TestNetworkWindows(unittest.TestCase):
+class TestNetworkWindows(test.TestCase):
 
     def setUp(self):
+        super(TestNetworkWindows, self).setUp()
+
         self._ctypes_mock = mock.MagicMock()
         self._winreg_mock = mock.Mock()
         self._win32com_mock = mock.Mock()
@@ -41,6 +43,8 @@ class TestNetworkWindows(unittest.TestCase):
         self._network = self._network_module.Network()
 
     def tearDown(self):
+        super(TestNetworkWindows, self).tearDown()
+
         self._module_patcher.stop()
 
     def _test__heap_alloc(self, fail):
@@ -50,12 +54,12 @@ class TestNetworkWindows(unittest.TestCase):
         if fail:
             self._kernel32.HeapAlloc.return_value = None
 
-            with self.assertRaises(exceptions.CloudInitError) as cm:
-                self._network_module._heap_alloc(mock_heap, mock_size)
+            e = self.assertRaises(exceptions.CloudInitError,
+                                  self._network_module._heap_alloc,
+                                  mock_heap, mock_size)
 
             self.assertEqual('Unable to allocate memory for the IP '
-                             'forward table',
-                             str(cm.exception))
+                             'forward table', str(e))
         else:
             result = self._network_module._heap_alloc(mock_heap, mock_size)
             self.assertEqual(self._kernel32.HeapAlloc.return_value, result)
@@ -69,17 +73,20 @@ class TestNetworkWindows(unittest.TestCase):
     def test__heap_alloc_no_error(self):
         self._test__heap_alloc(fail=False)
 
+    def _check_raises_forward(self):
+        with self._network._get_forward_table():
+            pass
+
     def test__get_forward_table_no_memory(self):
         self._network_module._heap_alloc = mock.Mock()
         error_msg = 'Unable to allocate memory for the IP forward table'
         exc = exceptions.CloudInitError(error_msg)
         self._network_module._heap_alloc.side_effect = exc
 
-        with self.assertRaises(exceptions.CloudInitError) as cm:
-            with self._network._get_forward_table():
-                pass
+        e = self.assertRaises(exceptions.CloudInitError,
+                              self._check_raises_forward)
 
-        self.assertEqual(error_msg, str(cm.exception))
+        self.assertEqual(error_msg, str(e))
         self._network_module._heap_alloc.assert_called_once_with(
             self._kernel32.GetProcessHeap.return_value,
             self._ctypes_mock.wintypes.ULONG.return_value)
@@ -89,9 +96,8 @@ class TestNetworkWindows(unittest.TestCase):
         self._iphlpapi.GetIpForwardTable.return_value = (
             self._iphlpapi.ERROR_INSUFFICIENT_BUFFER)
 
-        with self.assertRaises(exceptions.CloudInitError):
-            with self._network._get_forward_table():
-                pass
+        self.assertRaises(exceptions.CloudInitError,
+                          self._check_raises_forward)
 
         table = self._ctypes_mock.cast.return_value
         self._iphlpapi.GetIpForwardTable.assert_called_once_with(
@@ -107,13 +113,11 @@ class TestNetworkWindows(unittest.TestCase):
                                  insufficient_buffer=False,
                                  fail=False):
         if fail:
-            with self.assertRaises(exceptions.CloudInitError) as cm:
-                with self._network._get_forward_table():
-                    pass
-
+            e = self.assertRaises(exceptions.CloudInitError,
+                                  self._check_raises_forward)
             msg = ('Unable to get IP forward table. Error: %s'
                    % mock.sentinel.error)
-            self.assertEqual(msg, str(cm.exception))
+            self.assertEqual(msg, str(e))
         else:
             with self._network._get_forward_table() as table:
                 pass
@@ -207,11 +211,11 @@ class TestNetworkWindows(unittest.TestCase):
         mock_popen.return_value.communicate.return_value = (None, err)
 
         if err:
-            with self.assertRaises(exceptions.CloudInitError) as cm:
-                self._network_module.Route.add(mock_route)
-
+            e = self.assertRaises(exceptions.CloudInitError,
+                                  self._network_module.Route.add,
+                                  mock_route)
             msg = "Unable to add route: %s" % err
-            self.assertEqual(msg, str(cm.exception))
+            self.assertEqual(msg, str(e))
 
         else:
             self._network_module.Route.add(mock_route)
