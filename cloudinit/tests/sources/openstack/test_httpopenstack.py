@@ -75,7 +75,7 @@ class TestHttpOpenStackSource(test.TestCase):
 
         exc = self.assertRaises(exceptions.CloudInitError,
                                 self._source._available_versions)
-        expected = 'Invalid API version {!r}'.format(version)
+        expected = 'Invalid API version %r' % (version)
         self.assertEqual(expected, str(exc))
 
     def test__available_versions_invalid_versions(self):
