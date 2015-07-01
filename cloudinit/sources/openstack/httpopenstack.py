@@ -58,7 +58,7 @@ class HttpOpenStackSource(baseopenstack.BaseOpenStackSource):
 
         for version in versions:
             if not self._valid_api_version(version):
-                msg = 'Invalid API version {!r}'.format(version)
+                msg = 'Invalid API version %r' % (version)
                 raise exceptions.CloudInitError(msg)
 
         return versions

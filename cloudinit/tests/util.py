@@ -4,6 +4,7 @@
 # vi: ts=4 expandtab
 
 import logging
+import sys
 
 try:
     from unittest import mock
@@ -11,11 +12,21 @@ except ImportError:
     import mock  # noqa
 
 
+_IS_PY26 = sys.version_info[0:2] == (2, 6)
+
+
 # This is similar with unittest.TestCase.assertLogs from Python 3.4.
 class SnatchHandler(logging.Handler):
-    def __init__(self, *args, **kwargs):
-        super(SnatchHandler, self).__init__(*args, **kwargs)
-        self.output = []
+
+    if _IS_PY26:
+        # Old style junk is required on 2.6...
+        def __init__(self, *args, **kwargs):
+            logging.Handler.__init__(self, *args, **kwargs)
+            self.output = []
+    else:
+        def __init__(self, *args, **kwargs):
+            super(SnatchHandler, self).__init__(*args, **kwargs)
+            self.output = []
 
     def emit(self, record):
         msg = self.format(record)

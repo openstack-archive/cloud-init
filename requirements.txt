@@ -10,3 +10,5 @@ pyyaml
 jsonpatch
 requests>=1.0
 requests-oauthlib
+
+importlib;python_version=='2.6'
