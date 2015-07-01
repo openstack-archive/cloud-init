@@ -1,0 +1,66 @@
+# vi: ts=30 expandtab
+#
+# It seems like we might have the following "purposes" that we need a package
+#   T test
+#   D doc
+#   R runtime-required
+#   r runtime-optional
+#
+# then, for run time, we have hard requirements for which we have no code
+# fallback and almost all runs through code would fail on import (six)
+# and optional requirements such as jsonpatch that are only necessary if
+# user supplied data (or config on system) utilizes certain function set.
+#
+# I'd like to have tests that ensured that any time we add a dependency
+# that we fail build if that dependency is not listed here for the target
+# supported distros.
+#
+# Purpose List (need this somewhere, this is not a great place, but
+# want to avoid duplication in each line below)
+# This is admittedly partially present in test-requirements or requirements
+## coverage          D
+## doc8              D
+## hacking           D
+## httpretty         T
+## jsonpatch         r
+## nose              T
+## oslosphinx        T
+## pbr               T
+## requests-oauthlib r
+## requests          r
+## six               r
+## sphinx            D
+## testtools         T
+## mock              T
+## 
+#pip               distro   d_ver  pkgver py2_pkgname               py3_pkgname
+coverage           ubuntu   14.04  3.7.1  python-coverage           python3-coverage
+coverage           ubuntu   15.10  3.7.1  python-coverage           python3-coverage
+doc8               ubuntu   14.04  NA     NA                        NA
+doc8               ubuntu   15.10  NA     NA                        NA
+hacking            ubuntu   14.04  0.8.0  python-hacking            python3-hacking
+hacking            ubuntu   15.10  0.10.0 python-hacking            python3-hacking
+httpretty          ubuntu   14.04  0.8.0  python-httpretty          python3-httpretty
+httpretty          ubuntu   15.10  0.8.6  python-httpretty          python3-httpretty
+jsonpatch          ubuntu   14.04  1.3    python-jsonpatch          python3-jsonpatch
+jsonpatch          ubuntu   15.10  1.3    python-jsonpatch          python3-jsonpatch
+nose               ubuntu   14.04  1.3.1  python-nose               python3-nose
+nose               ubuntu   15.10  1.3.6  python-nose               python3-nose
+oslosphinx         ubuntu   14.04  2.0    python-oslosphinx         python3-oslosphinx
+oslosphinx         ubuntu   15.10  2.5    python-oslosphinx         python3-oslosphinx
+pbr                ubuntu   14.04  0.7.0  python-pbr                python3-pbr
+pbr                ubuntu   15.10  1.0.1  python-pbr                python3-pbr
+pyyaml             ubuntu   14.04  3.10   python-yaml               python3-yaml
+pyyaml             ubuntu   15.10  3.11   python-yaml               python3-yaml
+requests-oauthlib  ubuntu   14.04  0.4.0  python-requests-oauthlib  python3-requests-oau
+requests-oauthlib  ubuntu   15.10  0.4.0  python-requests-oauthlib  python3-requests-oau
+requests           ubuntu   14.04  2.2.1  python-requests           python3-requests
+requests           ubuntu   15.10  2.7.0  python-requests           python3-requests
+six                ubuntu   14.04  1.5.2  python-six                python3-six
+six                ubuntu   15.10  1.9.0  python-six                python3-six
+sphinx             ubuntu   14.04  1.2.2  sphinx                    sphinx
+sphinx             ubuntu   15.10  1.2.3  sphinx                    sphinx
+testtools          ubuntu   14.04  0.9.35 python-testtools          python3-testtools
+testtools          ubuntu   15.10  0.9.39 python-testtools          python3-testtools
+mock               ubuntu   14.04  1.1.33 python-mock               python3-mock
+mock               ubuntu   15.10  1.1.33 python-mock               python3-mock
