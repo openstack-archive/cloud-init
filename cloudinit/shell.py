@@ -1,9 +1,12 @@
 # Copyright 2015 Canonical Ltd.
-# Copyright 2015 Cloudbase Solutions Srl
 # This file is part of cloud-init.  See LICENCE file for license information.
+#
+# vi: ts=4 expandtab
 
 
 def main():
-    print("Hello World\n")
+    print("Run cloudinit run!")
 
-# vi: ts=4 expandtab
+
+if __name__ == '__main__':
+    main()
