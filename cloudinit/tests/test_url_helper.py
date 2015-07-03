@@ -6,7 +6,22 @@
 import httpretty
 
 from cloudinit import test
+from cloudinit.tests.util import mock
 from cloudinit import url_helper
+
+
+class TimeJumpSideEffect(object):
+
+    def __init__(self, first_time, remaining_time):
+        def generator():
+            yield first_time
+            while True:
+                yield remaining_time
+
+        self.time = generator()
+
+    def __call__(self):
+        return next(self.time)
 
 
 class UrlHelperWaitForUrlsTest(test.TestCase):
@@ -35,6 +50,8 @@ class UrlHelperWaitForUrlsTest(test.TestCase):
         self.assertEqual(response.contents, b'it worked!')
 
     @httpretty.activate
+    @mock.patch.object(
+        url_helper, 'now', mock.Mock(side_effect=TimeJumpSideEffect(0, 100)))
     def test_url_wait_for_no_work(self):
 
         def request_callback(request, uri, headers):
