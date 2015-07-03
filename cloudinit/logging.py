@@ -39,7 +39,7 @@ class _BlatherLoggerAdapter(logging.LoggerAdapter):
 
 
 # TODO(harlowja): we should remove when we no longer have to support 2.6...
-if sys.version_info[0:2] == (2, 6):
+if sys.version_info[0:2] == (2, 6):  # pragma: nocover
 
     class _FixedBlatherLoggerAdapter(_BlatherLoggerAdapter):
         """Ensures isEnabledFor() exists on adapters that are created."""
