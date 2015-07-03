@@ -5,7 +5,7 @@
 
 import httpretty
 
-from cloudinit import test
+from cloudinit import tests
 from cloudinit.tests.util import mock
 from cloudinit import url_helper
 
@@ -24,7 +24,7 @@ class TimeJumpSideEffect(object):
         return next(self.time)
 
 
-class UrlHelperWaitForUrlsTest(test.TestCase):
+class UrlHelperWaitForUrlsTest(tests.TestCase):
 
     @httpretty.activate
     def test_url_wait_for(self):
@@ -68,7 +68,7 @@ class UrlHelperWaitForUrlsTest(test.TestCase):
         self.assertIsNone(url_helper.wait_any_url(urls, max_wait=1))
 
 
-class UrlHelperFetchTest(test.TestCase):
+class UrlHelperFetchTest(tests.TestCase):
 
     @httpretty.activate
     def test_url_fetch(self):
