@@ -7,12 +7,12 @@ import importlib
 import subprocess
 
 from cloudinit import exceptions
-from cloudinit import test
+from cloudinit import tests
 from cloudinit.tests.util import LogSnatcher
 from cloudinit.tests.util import mock
 
 
-class TestNetworkWindows(test.TestCase):
+class TestNetworkWindows(tests.TestCase):
 
     def setUp(self):
         super(TestNetworkWindows, self).setUp()

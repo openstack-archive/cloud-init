@@ -10,13 +10,13 @@ from six.moves import http_client
 from cloudinit import exceptions
 from cloudinit.sources import base
 from cloudinit.sources.openstack import httpopenstack
-from cloudinit import test
+from cloudinit import tests
 from cloudinit.tests.util import LogSnatcher
 from cloudinit.tests.util import mock
 from cloudinit import url_helper
 
 
-class TestHttpOpenStackSource(test.TestCase):
+class TestHttpOpenStackSource(tests.TestCase):
 
     def setUp(self):
         self._source = httpopenstack.HttpOpenStackSource()

@@ -5,12 +5,12 @@
 
 from cloudinit.sources import base as base_source
 from cloudinit.sources.openstack import base
-from cloudinit import test
+from cloudinit import tests
 from cloudinit.tests.util import LogSnatcher
 from cloudinit.tests.util import mock
 
 
-class TestBaseOpenStackSource(test.TestCase):
+class TestBaseOpenStackSource(tests.TestCase):
 
     @mock.patch('cloudinit.sources.openstack.base.BaseOpenStackSource.'
                 '__abstractmethods__', new=())
