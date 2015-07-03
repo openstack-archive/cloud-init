@@ -8,7 +8,7 @@ import time
 
 try:
     from time import monotonic as now
-except ImportError:
+except ImportError:  # pragma: nocover
     from time import time as now
 
 import requests
