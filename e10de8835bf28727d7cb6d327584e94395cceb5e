@@ -1,0 +1,9 @@
+Verified+2: Jenkins
+Code-Review+1: Scott Moser <smoser@ubuntu.com>
+Workflow+1: Scott Moser <smoser@ubuntu.com>
+Code-Review+2: Joshua Harlow <harlowja@yahoo-inc.com>
+Submitted-by: Jenkins
+Submitted-at: Mon, 06 Jul 2015 13:27:45 +0000
+Reviewed-on: https://review.openstack.org/198348
+Project: stackforge/cloud-init
+Branch: refs/heads/master
