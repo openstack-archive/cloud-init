@@ -12,15 +12,16 @@ from cloudinit.tests.util import mock
 
 class TestReportStartEvent(unittest.TestCase):
 
-    @mock.patch('cloudinit.reporting.HANDLERS',
-                new_callable=lambda: [mock.MagicMock(), mock.MagicMock()])
+    @mock.patch('cloudinit.reporting.handler_registry',
+                new_callable=lambda: mock.Mock(
+                    registered_items=[mock.MagicMock(), mock.MagicMock()]))
     def test_report_start_event_passes_something_with_as_string_to_handlers(
-            self, HANDLERS):
+            self, handler_registry):
         event_name, event_description = 'my_test_event', 'my description'
         reporting.report_start_event(event_name, event_description)
         expected_string_representation = ': '.join(
             ['start', event_name, event_description])
-        for handler in HANDLERS:
+        for handler in handler_registry.registered_items:
             self.assertEqual(1, handler.publish_event.call_count)
             event = handler.publish_event.call_args[0][0]
             self.assertEqual(expected_string_representation, event.as_string())
@@ -41,37 +42,40 @@ class TestReportFinishEvent(unittest.TestCase):
             event = handler.publish_event.call_args[0][0]
             self.assertEqual(expected_as_string, event.as_string())
 
-    @mock.patch('cloudinit.reporting.HANDLERS',
-                new_callable=lambda: [mock.MagicMock(), mock.MagicMock()])
+    @mock.patch('cloudinit.reporting.handler_registry',
+                new_callable=lambda: mock.Mock(
+                    registered_items=[mock.MagicMock(), mock.MagicMock()]))
     def test_report_finish_event_passes_something_with_as_string_to_handlers(
-            self, HANDLERS):
+            self, handler_registry):
         event_name, event_description = self._report_finish_event()
         expected_string_representation = ': '.join(
             ['finish', event_name, event_description])
         self.assertHandlersPassedObjectWithAsString(
-            HANDLERS, expected_string_representation)
+            handler_registry.registered_items, expected_string_representation)
 
-    @mock.patch('cloudinit.reporting.HANDLERS',
-                new_callable=lambda: [mock.MagicMock(), mock.MagicMock()])
-    def test_reporting_successful_finish_has_sensible_string_repr(self,
-                                                                  HANDLERS):
+    @mock.patch('cloudinit.reporting.handler_registry',
+                new_callable=lambda: mock.Mock(
+                    registered_items=[mock.MagicMock(), mock.MagicMock()]))
+    def test_reporting_successful_finish_has_sensible_string_repr(
+            self, handler_registry):
         event_name, event_description = self._report_finish_event(
             successful=True)
         expected_string_representation = ': '.join(
             ['finish', event_name, 'success', event_description])
         self.assertHandlersPassedObjectWithAsString(
-            HANDLERS, expected_string_representation)
+            handler_registry.registered_items, expected_string_representation)
 
-    @mock.patch('cloudinit.reporting.HANDLERS',
-                new_callable=lambda: [mock.MagicMock(), mock.MagicMock()])
-    def test_reporting_unsuccessful_finish_has_sensible_string_repr(self,
-                                                                    HANDLERS):
+    @mock.patch('cloudinit.reporting.handler_registry',
+                new_callable=lambda: mock.Mock(
+                    registered_items=[mock.MagicMock(), mock.MagicMock()]))
+    def test_reporting_unsuccessful_finish_has_sensible_string_repr(
+            self, handler_registry):
         event_name, event_description = self._report_finish_event(
             successful=False)
         expected_string_representation = ': '.join(
             ['finish', event_name, 'fail', event_description])
         self.assertHandlersPassedObjectWithAsString(
-            HANDLERS, expected_string_representation)
+            handler_registry.registered_items, expected_string_representation)
 
 
 class TestReportingEvent(unittest.TestCase):
@@ -115,3 +119,13 @@ class TestLogHandler(TestCase):
         reporting.LogHandler().publish_event(event)
         self.assertIn(event.as_string(),
                       getLogger.return_value.info.call_args[0][0])
+
+
+class TestDefaultRegisteredHandler(TestCase):
+
+    def test_log_handler_registered_by_default(self):
+        for item in reporting.handler_registry.registered_items:
+            if isinstance(item, reporting.LogHandler):
+                break
+        else:
+            self.fail('No reporting LogHandler registered by default.')
