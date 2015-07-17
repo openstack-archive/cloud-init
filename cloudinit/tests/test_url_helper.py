@@ -81,6 +81,23 @@ class UrlHelperFetchTest(tests.TestCase):
         self.assertEqual(url_helper.OK, resp.status_code)
 
     @httpretty.activate
+    def test_no_protocol_url(self):
+        body = b'it worked!'
+        no_proto = 'www.yahoo.com'
+        httpretty.register_uri(httpretty.GET, "http://" + no_proto, body=body)
+        resp = url_helper.read_url(no_proto)
+        self.assertTrue(resp.url.startswith("http://"))
+
+    @httpretty.activate
+    def test_response_has_url(self):
+        body = b'it worked!'
+        url = 'http://www.yahoo.com/'
+        httpretty.register_uri(httpretty.GET, url, body=body)
+        resp = url_helper.read_url(url)
+        self.assertEqual(resp.url, url)
+        self.assertEqual(body, resp.contents)
+
+    @httpretty.activate
     def test_retry_url_fetch(self):
         httpretty.register_uri(httpretty.GET,
                                "http://www.yahoo.com",
