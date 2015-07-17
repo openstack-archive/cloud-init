@@ -8,6 +8,18 @@ Join us
 
 - http://launchpad.net/cloud-init
 
+
+Bugs
+----
+Bug reports should be opened at
+  https://bugs.launchpad.net/cloud-init/+filebug
+
+On Ubuntu Systems, you can file bugs with:
+
+::
+
+  $ ubuntu-bug cloud-init
+
 Testing and requirements
 ------------------------
 
