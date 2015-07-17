@@ -9,6 +9,7 @@ The reporting framework is intended to allow all parts of cloud-init to
 report events in a structured manner.
 """
 
+import abc
 import logging
 
 
@@ -45,18 +46,24 @@ class FinishReportingEvent(ReportingEvent):
             self.event_type, self.name, success_string, self.description)
 
 
-class LogHandler(object):
+class ReportingHandler(object):
+
+    @abc.abstractmethod
+    def publish_event(self, event):
+        raise NotImplementedError
+
+
+class LogHandler(ReportingHandler):
     """Publishes events to the cloud-init log at the ``INFO`` log level."""
 
-    @staticmethod
-    def publish_event(event):
+    def publish_event(self, event):
         """Publish an event to the ``INFO`` log level."""
         logger = logging.getLogger(
             '.'.join([__name__, event.event_type, event.name]))
         logger.info(event.as_string())
 
 
-HANDLERS = [LogHandler]
+HANDLERS = [LogHandler()]
 
 
 def report_event(event):
