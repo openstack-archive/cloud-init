@@ -18,6 +18,14 @@ from cloudinit.registry import DictRegistry
 FINISH_EVENT_TYPE = 'finish'
 START_EVENT_TYPE = 'start'
 
+DEFAULT_CONFIG = {
+    'logging': {'type': 'log'},
+}
+
+
+instantiated_handler_registry = DictRegistry()
+available_handlers = DictRegistry()
+
 
 class ReportingEvent(object):
     """Encapsulation of event formatting."""
@@ -65,8 +73,12 @@ class LogHandler(ReportingHandler):
         logger.info(event.as_string())
 
 
-handler_registry = DictRegistry()
-handler_registry.register_item('_logging', LogHandler())
+def add_configuration(config):
+    for handler_name, handler_config in config.items():
+        handler_config = handler_config.copy()
+        cls = available_handlers.registered_items[handler_config.pop('type')]
+        instance = cls(**handler_config)
+        instantiated_handler_registry.register_item(handler_name, instance)
 
 
 def report_event(event):
@@ -79,7 +91,7 @@ def report_event(event):
         The type of the event; this should be a constant from the
         reporting module.
     """
-    for _, handler in handler_registry.registered_items.items():
+    for _, handler in instantiated_handler_registry.registered_items.items():
         handler.publish_event(event)
 
 
@@ -104,3 +116,7 @@ def report_start_event(event_name, event_description):
     """
     event = ReportingEvent(START_EVENT_TYPE, event_name, event_description)
     return report_event(event)
+
+
+available_handlers.register_item('log', LogHandler)
+add_configuration(DEFAULT_CONFIG)
