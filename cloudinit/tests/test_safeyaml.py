@@ -6,6 +6,8 @@
 from cloudinit import safeyaml as yaml
 from cloudinit import tests
 
+import tempfile
+
 
 class TestSafeYaml(tests.TestCase):
     def test_simple(self):
@@ -27,3 +29,19 @@ class TestSafeYaml(tests.TestCase):
         # in the past this type was allowed, but not now, so explicit test.
         blob = "{k1: !!python/unicode 'my unicode', k2: my string}"
         self.assertRaises(yaml.YAMLError, yaml.loads, blob)
+
+    def test_dumps_returns_string(self):
+        self.assertTrue(
+            isinstance(yaml.dumps(867 - 5309), (str,)))
+
+    def test_dumps_is_loadable(self):
+        mydata = {'a': 'hey', 'b': ['bee', 'Bea']}
+        self.assertEqual(yaml.loads(yaml.dumps(mydata)), mydata)
+
+    def test_load(self):
+        valid_yaml = "foo: bar"
+        expected = {'foo': 'bar'}
+        with tempfile.NamedTemporaryFile(mode='w', delete=False) as tmpf:
+            tmpf.write(valid_yaml)
+            tmpf.close()
+            self.assertEqual(yaml.load(tmpf.name), expected)
