@@ -13,13 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import unittest
-
 from cloudinit.osys import base
+from cloudinit.tests import TestCase
 from cloudinit.tests.util import mock
 
 
-class TestOSUtils(unittest.TestCase):
+class TestOSUtils(TestCase):
 
     @mock.patch('importlib.import_module')
     @mock.patch('platform.linux_distribution')

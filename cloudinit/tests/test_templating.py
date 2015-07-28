@@ -9,10 +9,10 @@ import os
 import textwrap
 
 from cloudinit import templater
-from cloudinit import tests
+from cloudinit.tests import TestCase
 
 
-class TestTemplates(tests.TestCase):
+class TestTemplates(TestCase):
     jinja_tmpl = '\n'.join((
         "## template:jinja",
         "{{a}},{{b}}",

@@ -4,15 +4,16 @@
 # vi: ts=4 expandtab
 
 import importlib
-import unittest
 
 from cloudinit import exceptions
+from cloudinit.tests import TestCase
 from cloudinit.tests.util import mock
 
 
-class TestWindowsGeneral(unittest.TestCase):
+class TestWindowsGeneral(TestCase):
 
     def setUp(self):
+        super(TestWindowsGeneral, self).setUp()
         self._ctypes_mock = mock.Mock()
         self._util_mock = mock.MagicMock()
         self._module_patcher = mock.patch.dict(
@@ -27,6 +28,7 @@ class TestWindowsGeneral(unittest.TestCase):
         self._general = self._general_module.General()
 
     def tearDown(self):
+        super(TestWindowsGeneral, self).tearDown()
         self._module_patcher.stop()
 
     def _test_check_os_version(self, ret_value, error_value=None):

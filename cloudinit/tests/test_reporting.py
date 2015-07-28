@@ -3,8 +3,6 @@
 #
 # vi: ts=4 expandtab
 
-import unittest
-
 from cloudinit import reporting
 from cloudinit.tests import TestCase
 from cloudinit.tests.util import mock
@@ -15,7 +13,7 @@ def _fake_registry():
                                        'b': mock.MagicMock()})
 
 
-class TestReportStartEvent(unittest.TestCase):
+class TestReportStartEvent(TestCase):
 
     @mock.patch('cloudinit.reporting.instantiated_handler_registry',
                 new_callable=_fake_registry)
@@ -32,7 +30,7 @@ class TestReportStartEvent(unittest.TestCase):
             self.assertEqual(expected_string_representation, event.as_string())
 
 
-class TestReportFinishEvent(unittest.TestCase):
+class TestReportFinishEvent(TestCase):
 
     def _report_finish_event(self, successful=None):
         event_name, event_description = 'my_test_event', 'my description'
@@ -83,7 +81,7 @@ class TestReportFinishEvent(unittest.TestCase):
             expected_string_representation)
 
 
-class TestReportingEvent(unittest.TestCase):
+class TestReportingEvent(TestCase):
 
     def test_as_string(self):
         event_type, name, description = 'test_type', 'test_name', 'test_desc'

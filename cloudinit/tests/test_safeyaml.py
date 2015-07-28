@@ -4,12 +4,12 @@
 # vi: ts=4 expandtab
 
 from cloudinit import safeyaml as yaml
-from cloudinit import tests
+from cloudinit.tests import TestCase
 
 import tempfile
 
 
-class TestSafeYaml(tests.TestCase):
+class TestSafeYaml(TestCase):
     def test_simple(self):
         blob = '\nk1: one\nk2: two'
         expected = {'k1': "one", 'k2': "two"}
