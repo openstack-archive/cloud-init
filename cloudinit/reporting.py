@@ -12,6 +12,8 @@ report events in a structured manner.
 import abc
 import logging
 
+from cloudinit.registry import DictRegistry
+
 
 FINISH_EVENT_TYPE = 'finish'
 START_EVENT_TYPE = 'start'
@@ -63,7 +65,8 @@ class LogHandler(ReportingHandler):
         logger.info(event.as_string())
 
 
-HANDLERS = [LogHandler()]
+handler_registry = DictRegistry()
+handler_registry.register_item('_logging', LogHandler())
 
 
 def report_event(event):
@@ -76,7 +79,7 @@ def report_event(event):
         The type of the event; this should be a constant from the
         reporting module.
     """
-    for handler in HANDLERS:
+    for _, handler in handler_registry.registered_items.items():
         handler.publish_event(event)
 
 
