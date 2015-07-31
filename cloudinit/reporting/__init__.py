@@ -9,10 +9,8 @@ The reporting framework is intended to allow all parts of cloud-init to
 report events in a structured manner.
 """
 
-import abc
-import logging
-
 from cloudinit.registry import DictRegistry
+from cloudinit.reporting.handlers import available_handlers
 
 
 FINISH_EVENT_TYPE = 'finish'
@@ -22,9 +20,7 @@ DEFAULT_CONFIG = {
     'logging': {'type': 'log'},
 }
 
-
 instantiated_handler_registry = DictRegistry()
-available_handlers = DictRegistry()
 
 
 class ReportingEvent(object):
@@ -54,23 +50,6 @@ class FinishReportingEvent(ReportingEvent):
         success_string = 'success' if self.successful else 'fail'
         return '{0}: {1}: {2}: {3}'.format(
             self.event_type, self.name, success_string, self.description)
-
-
-class ReportingHandler(object):
-
-    @abc.abstractmethod
-    def publish_event(self, event):
-        raise NotImplementedError
-
-
-class LogHandler(ReportingHandler):
-    """Publishes events to the cloud-init log at the ``INFO`` log level."""
-
-    def publish_event(self, event):
-        """Publish an event to the ``INFO`` log level."""
-        logger = logging.getLogger(
-            '.'.join([__name__, event.event_type, event.name]))
-        logger.info(event.as_string())
 
 
 def add_configuration(config):
@@ -118,5 +97,4 @@ def report_start_event(event_name, event_description):
     return report_event(event)
 
 
-available_handlers.register_item('log', LogHandler)
 add_configuration(DEFAULT_CONFIG)
