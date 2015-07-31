@@ -4,6 +4,7 @@
 # vi: ts=4 expandtab
 
 from cloudinit import reporting
+from cloudinit.reporting import handlers
 from cloudinit.tests import TestCase
 from cloudinit.tests.util import mock
 
@@ -95,31 +96,31 @@ class TestReportingHandler(TestCase):
 
     def test_no_default_publish_event_implementation(self):
         self.assertRaises(NotImplementedError,
-                          reporting.ReportingHandler().publish_event, None)
+                          handlers.ReportingHandler().publish_event, None)
 
 
 class TestLogHandler(TestCase):
 
-    @mock.patch.object(reporting.logging, 'getLogger')
+    @mock.patch.object(handlers.logging, 'getLogger')
     def test_appropriate_logger_used(self, getLogger):
         event_type, event_name = 'test_type', 'test_name'
         event = reporting.ReportingEvent(event_type, event_name, 'description')
-        reporting.LogHandler().publish_event(event)
+        handlers.LogHandler().publish_event(event)
         self.assertEqual(
             [mock.call(
                 'cloudinit.reporting.{0}.{1}'.format(event_type, event_name))],
             getLogger.call_args_list)
 
-    @mock.patch.object(reporting.logging, 'getLogger')
+    @mock.patch.object(handlers.logging, 'getLogger')
     def test_single_log_message_at_info_published(self, getLogger):
         event = reporting.ReportingEvent('type', 'name', 'description')
-        reporting.LogHandler().publish_event(event)
+        handlers.LogHandler().publish_event(event)
         self.assertEqual(1, getLogger.return_value.info.call_count)
 
-    @mock.patch.object(reporting.logging, 'getLogger')
+    @mock.patch.object(handlers.logging, 'getLogger')
     def test_log_message_uses_event_as_string(self, getLogger):
         event = reporting.ReportingEvent('type', 'name', 'description')
-        reporting.LogHandler().publish_event(event)
+        handlers.LogHandler().publish_event(event)
         self.assertIn(event.as_string(),
                       getLogger.return_value.info.call_args[0][0])
 
@@ -130,7 +131,7 @@ class TestDefaultRegisteredHandler(TestCase):
         registered_items = (
             reporting.instantiated_handler_registry.registered_items)
         for _, item in registered_items.items():
-            if isinstance(item, reporting.LogHandler):
+            if isinstance(item, handlers.LogHandler):
                 break
         else:
             self.fail('No reporting LogHandler registered by default.')
