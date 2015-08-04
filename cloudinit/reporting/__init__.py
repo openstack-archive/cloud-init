@@ -23,6 +23,16 @@ DEFAULT_CONFIG = {
 instantiated_handler_registry = DictRegistry()
 
 
+class _nameset(set):
+    def __getattr__(self, name):
+        if name in self:
+            return name
+        raise AttributeError("%s not a valid value" % name)
+
+
+status = _nameset(("SUCCESS", "WARN", "FAIL"))
+
+
 class ReportingEvent(object):
     """Encapsulation of event formatting."""
 
@@ -39,17 +49,16 @@ class ReportingEvent(object):
 
 class FinishReportingEvent(ReportingEvent):
 
-    def __init__(self, name, description, successful=None):
+    def __init__(self, name, description, result=status.SUCCESS):
         super(FinishReportingEvent, self).__init__(
             FINISH_EVENT_TYPE, name, description)
-        self.successful = successful
+        self.result = result
+        if result not in status:
+            raise ValueError("Invalid result: %s" % result)
 
     def as_string(self):
-        if self.successful is None:
-            return super(FinishReportingEvent, self).as_string()
-        success_string = 'success' if self.successful else 'fail'
         return '{0}: {1}: {2}: {3}'.format(
-            self.event_type, self.name, success_string, self.description)
+            self.event_type, self.name, self.result, self.description)
 
 
 def add_configuration(config):
@@ -74,12 +83,13 @@ def report_event(event):
         handler.publish_event(event)
 
 
-def report_finish_event(event_name, event_description, successful=None):
+def report_finish_event(event_name, event_description,
+                        result=status.SUCCESS):
     """Report a "finish" event.
 
     See :py:func:`.report_event` for parameter details.
     """
-    event = FinishReportingEvent(event_name, event_description, successful)
+    event = FinishReportingEvent(event_name, event_description, result)
     return report_event(event)
 
 
@@ -95,6 +105,113 @@ def report_start_event(event_name, event_description):
     """
     event = ReportingEvent(START_EVENT_TYPE, event_name, event_description)
     return report_event(event)
+
+
+class ReportEventStack(object):
+    """Context Manager for using :py:func:`report_event`
+
+    This enables calling :py:func:`report_start_event` and
+    :py:func:`report_finish_event` through a context manager.
+
+    :param name:
+        the name of the event
+
+    :param description:
+        the event's description, passed on to :py:func:`report_start_event`
+
+    :param message:
+        the description to use for the finish event. defaults to
+        :param:description.
+
+    :param parent:
+    :type parent: :py:class:ReportEventStack or None
+        The parent of this event.  The parent is populated with
+        results of all its children.  The name used in reporting
+        is <parent.name>/<name>
+
+    :param reporting_enabled:
+        Indicates if reporting events should be generated.
+        If not provided, defaults to the parent's value, or True if no parent
+        is provided.
+
+    :param result_on_exception:
+        The result value to set if an exception is caught. default
+        value is FAIL.
+    """
+    def __init__(self, name, description, message=None, parent=None,
+                 reporting_enabled=None, result_on_exception=status.FAIL):
+        self.parent = parent
+        self.name = name
+        self.description = description
+        self.message = message
+        self.result_on_exception = result_on_exception
+        self.result = status.SUCCESS
+
+        # use parents reporting value if not provided
+        if reporting_enabled is None:
+            if parent:
+                reporting_enabled = parent.reporting_enabled
+            else:
+                reporting_enabled = True
+        self.reporting_enabled = reporting_enabled
+
+        if parent:
+            self.fullname = '/'.join((parent.fullname, name,))
+        else:
+            self.fullname = self.name
+        self.children = {}
+
+    def __repr__(self):
+        return ("ReportEventStack(%s, %s, reporting_enabled=%s)" %
+                (self.name, self.description, self.reporting_enabled))
+
+    def __enter__(self):
+        self.result = status.SUCCESS
+        if self.reporting_enabled:
+            report_start_event(self.fullname, self.description)
+        if self.parent:
+            self.parent.children[self.name] = (None, None)
+        return self
+
+    def _childrens_finish_info(self):
+        for cand_result in (status.FAIL, status.WARN):
+            for name, (value, msg) in self.children.items():
+                if value == cand_result:
+                    return (value, self.message)
+        return (self.result, self.message)
+
+    @property
+    def result(self):
+        return self._result
+
+    @result.setter
+    def result(self, value):
+        if value not in status:
+            raise ValueError("'%s' not a valid result" % value)
+        self._result = value
+
+    @property
+    def message(self):
+        if self._message is not None:
+            return self._message
+        return self.description
+
+    @message.setter
+    def message(self, value):
+        self._message = value
+
+    def _finish_info(self, exc):
+        # return tuple of description, and value
+        if exc:
+            return (self.result_on_exception, self.message)
+        return self._childrens_finish_info()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        (result, msg) = self._finish_info(exc_value)
+        if self.parent:
+            self.parent.children[self.name] = (result, msg)
+        if self.reporting_enabled:
+            report_finish_event(self.fullname, msg, result)
 
 
 add_configuration(DEFAULT_CONFIG)
