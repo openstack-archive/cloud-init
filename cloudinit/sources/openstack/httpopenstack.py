@@ -125,3 +125,8 @@ class HttpOpenStackSource(baseopenstack.BaseOpenStackSource):
                 return False
             else:
                 raise
+
+
+def data_sources():
+    """Get the data sources exported in this module."""
+    return (HttpOpenStackSource,)
