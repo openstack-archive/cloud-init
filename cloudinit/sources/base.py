@@ -4,8 +4,17 @@
 # vi: ts=4 expandtab
 
 import abc
+import itertools
+import logging
 
 import six
+
+from cloudinit import exceptions
+from cloudinit import plugin_finder
+from cloudinit import sources
+
+
+LOG = logging.getLogger(__name__)
 
 
 class APIResponse(object):
@@ -33,6 +42,53 @@ class APIResponse(object):
 
     def __str__(self):
         return self.decoded_buffer
+
+
+class DataSourceFinder(plugin_finder.ModuleFinder):
+    """A finder which knows how to find all the possible data sources
+
+    For retrieving the data sources that this finder knows about,
+    use the :meth:`data_sources` method.
+    """
+
+    @staticmethod
+    def _implements_source_api(module):
+        """Check if the given module implements the data source API."""
+        return hasattr(module, 'data_sources')
+
+    def list_valid_modules(self):
+        modules = self.list_all_modules()
+        return [module for (_, _, module) in modules
+                if self._implements_source_api(module)]
+
+    def data_sources(self):
+        data_sources = itertools.chain.from_iterable(
+            module.data_sources()
+            for module in self.list_valid_modules())
+        return list(data_sources)
+
+
+class DataSourceLoader(object):
+    """Class for retrieving an available data source instance."""
+
+    def __init__(self, search_paths):
+        self._finder = DataSourceFinder(search_paths)
+
+    def load_data_source(self):
+        # TODO(cpopa): implement search strategies,
+        # which should find data sources in parallel,
+        # or filter the possible data sources
+        # (return only network data sources)
+
+        for data_source in self._finder.data_sources():
+            instance = data_source()
+            try:
+                if instance.load():
+                    return instance
+            except Exception:
+                LOG.error("Failed to load data source %r", data_source)
+
+        raise exceptions.CloudInitError('No available data source found')
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -106,3 +162,12 @@ class BaseDataSource(object):
 
     def is_password_set(self):
         """Check if the password was already posted to the metadata service."""
+
+
+def get_data_source():
+    """Get an instance of any data source available.
+
+    This will usually return the first data source that could be loaded.
+    """
+    finder = DataSourceLoader(sources.__path__)
+    return finder.load_data_source()
