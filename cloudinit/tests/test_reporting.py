@@ -148,7 +148,7 @@ class TestReportingConfiguration(TestCase):
     @mock.patch.object(reporting, 'instantiated_handler_registry')
     def test_empty_configuration_doesnt_add_handlers(
             self, instantiated_handler_registry):
-        reporting.add_configuration({})
+        reporting.update_configuration({})
         self.assertEqual(
             0, instantiated_handler_registry.register_item.call_count)
 
@@ -160,7 +160,7 @@ class TestReportingConfiguration(TestCase):
         handler_cls = mock.Mock()
         available_handlers.registered_items = {handler_type_name: handler_cls}
         handler_name = 'my_test_handler'
-        reporting.add_configuration(
+        reporting.update_configuration(
             {handler_name: {'type': handler_type_name}})
         self.assertEqual(
             {handler_name: handler_cls.return_value},
@@ -178,7 +178,7 @@ class TestReportingConfiguration(TestCase):
         handler_config = extra_kwargs.copy()
         handler_config.update({'type': handler_type_name})
         handler_name = 'my_test_handler'
-        reporting.add_configuration({handler_name: handler_config})
+        reporting.update_configuration({handler_name: handler_config})
         self.assertEqual(
             handler_cls.return_value,
             reporting.instantiated_handler_registry.registered_items[
@@ -195,7 +195,7 @@ class TestReportingConfiguration(TestCase):
         available_handlers.registered_items = {handler_type_name: handler_cls}
         handler_config = {'type': handler_type_name, 'foo': 'bar'}
         expected_handler_config = handler_config.copy()
-        reporting.add_configuration({'my_test_handler': handler_config})
+        reporting.update_configuration({'my_test_handler': handler_config})
         self.assertEqual(expected_handler_config, handler_config)
 
 
