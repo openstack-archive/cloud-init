@@ -4,8 +4,15 @@
 # vi: ts=4 expandtab
 
 import abc
+import itertools
+import logging
 
 import six
+
+from cloudinit import sources
+
+
+LOG = logging.getLogger(__name__)
 
 
 class APIResponse(object):
@@ -33,6 +40,68 @@ class APIResponse(object):
 
     def __str__(self):
         return self.decoded_buffer
+
+
+class DataSourceLoader(object):
+    """Class for retrieving an available data source instance
+
+    :param module_iterator:
+        An instance of :class:`cloudinit.plugin_finder.BaseModuleIterator`,
+        which is used to find possible modules where the data sources
+        can be found.
+    :param strategies:
+        An iterator of search strategy classes, where each strategy is capable
+        of filtering the data sources that can be used by cloudinit.
+        Possible strategies includes serial data source search or
+        parallel data source or filtering data sources according to
+        some criteria (only network data sources)
+     :param names:
+        A list of possible data source names, from which the loader
+        should pick. This can be used to filter the data sources
+        that can be found from outside of cloudinit control.
+    """
+
+    def __init__(self, names, module_iterator, strategies):
+        self._names = names
+        self._module_iterator = module_iterator
+        self._strategies = strategies
+
+    @staticmethod
+    def _implements_source_api(module):
+        """Check if the given module implements the data source API."""
+        return hasattr(module, 'data_sources')
+
+    def _valid_modules(self):
+        """Return all the modules that are *valid*
+
+        Valid modules are those that implements a particular API
+        for declaring the data sources it exports.
+        """
+        modules = self._module_iterator.list_modules()
+        return list(filter(self._implements_source_api, modules))
+
+    @staticmethod
+    def _filter_data_sources(data_sources, names):
+        """Select only the sources that were declared for loading upfront."""
+        return (source for source in data_sources if source.__name__ in names)
+
+    def all_data_sources(self):
+        """Get all the data source classes that this finder knows about."""
+        return itertools.chain.from_iterable(
+            module.data_sources()
+            for module in self._valid_modules())
+
+    def valid_data_sources(self):
+        """Get the data sources that are valid for this run."""
+        data_sources = self.all_data_sources()
+        data_sources = self._filter_data_sources(data_sources, self._names)
+        # Instantiate them before passing to the strategies.
+        data_sources = (data_source() for data_source in data_sources)
+
+        for strategy_cls in self._strategies:
+            strategy = strategy_cls(data_sources)
+            data_sources = strategy.search_data_source()
+        return data_sources
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -106,3 +175,26 @@ class BaseDataSource(object):
 
     def is_password_set(self):
         """Check if the password was already posted to the metadata service."""
+
+
+def get_data_source(names, module_iterator, strategies):
+    """Get an instance of any data source available.
+
+    :param names:
+        A list of possible data source names, from which the loader
+        should pick. This can be used to filter the data sources
+        that can be found from outside of cloudinit control.
+
+    :param module_iterator:
+        A subclass of :class:`cloudinit.plugin_finder.BaseModuleIterator`,
+        which is used to find possible modules where the data sources
+        can be found.
+
+    :param strategies:
+        An iterator of search strategy classes, where each strategy is capable
+        of filtering the data sources that can be used by cloudinit.
+    """
+    iterator = module_iterator(sources.__path__)
+    loader = DataSourceLoader(names, iterator, strategies)
+    valid_sources = loader.valid_data_sources()
+    return list(valid_sources)[0]
