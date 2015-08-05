@@ -92,11 +92,12 @@ class TestReportingEvent(TestCase):
         self.assertEqual(expected_string_representation, event.as_string())
 
 
-class TestReportingHandler(TestCase):
+class TestBaseReportingHandler(TestCase):
 
-    def test_no_default_publish_event_implementation(self):
-        self.assertRaises(NotImplementedError,
-                          handlers.ReportingHandler().publish_event, None)
+    def test_base_reporting_handler_is_abstract(self):
+        exc = self.assertRaises(TypeError, handlers.ReportingHandler)
+        self.assertEqual("Can't instantiate abstract class ReportingHandler "
+                         "with abstract methods publish_event", str(exc))
 
 
 class TestLogHandler(TestCase):
