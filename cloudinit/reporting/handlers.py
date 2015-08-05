@@ -1,14 +1,22 @@
 import abc
 import logging
 
+import six
+
 from cloudinit.registry import DictRegistry
 
 
+@six.add_metaclass(abc.ABCMeta)
 class ReportingHandler(object):
+    """Base class for report handlers.
+
+    Implement :meth:`~publish_event` for controlling what
+    the handler does with an event.
+    """
 
     @abc.abstractmethod
     def publish_event(self, event):
-        raise NotImplementedError
+        """Publish an event to the ``INFO`` log level."""
 
 
 class LogHandler(ReportingHandler):
