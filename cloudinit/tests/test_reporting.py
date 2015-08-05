@@ -96,6 +96,23 @@ class TestReportingEvent(TestCase):
             [event_type, name, description])
         self.assertEqual(expected_string_representation, event.as_string())
 
+    def test_as_dict(self):
+        event_type, name, desc = 'test_type', 'test_name', 'test_desc'
+        event = reporting.ReportingEvent(event_type, name, desc)
+        self.assertEqual(
+            {'event_type': event_type, 'name': name, 'description': desc},
+            event.as_dict())
+
+
+class TestFinishReportingEvent(TestCase):
+    def test_as_has_result(self):
+        result = reporting.status.SUCCESS
+        name, desc = 'test_name', 'test_desc'
+        event = reporting.FinishReportingEvent(name, desc, result)
+        ret = event.as_dict()
+        self.assertTrue('result' in ret)
+        self.assertEqual(ret['result'], result)
+
 
 class TestBaseReportingHandler(TestCase):
 
@@ -148,7 +165,7 @@ class TestReportingConfiguration(TestCase):
     @mock.patch.object(reporting, 'instantiated_handler_registry')
     def test_empty_configuration_doesnt_add_handlers(
             self, instantiated_handler_registry):
-        reporting.add_configuration({})
+        reporting.update_configuration({})
         self.assertEqual(
             0, instantiated_handler_registry.register_item.call_count)
 
@@ -160,7 +177,7 @@ class TestReportingConfiguration(TestCase):
         handler_cls = mock.Mock()
         available_handlers.registered_items = {handler_type_name: handler_cls}
         handler_name = 'my_test_handler'
-        reporting.add_configuration(
+        reporting.update_configuration(
             {handler_name: {'type': handler_type_name}})
         self.assertEqual(
             {handler_name: handler_cls.return_value},
@@ -178,7 +195,7 @@ class TestReportingConfiguration(TestCase):
         handler_config = extra_kwargs.copy()
         handler_config.update({'type': handler_type_name})
         handler_name = 'my_test_handler'
-        reporting.add_configuration({handler_name: handler_config})
+        reporting.update_configuration({handler_name: handler_config})
         self.assertEqual(
             handler_cls.return_value,
             reporting.instantiated_handler_registry.registered_items[
@@ -195,8 +212,24 @@ class TestReportingConfiguration(TestCase):
         available_handlers.registered_items = {handler_type_name: handler_cls}
         handler_config = {'type': handler_type_name, 'foo': 'bar'}
         expected_handler_config = handler_config.copy()
-        reporting.add_configuration({'my_test_handler': handler_config})
+        reporting.update_configuration({'my_test_handler': handler_config})
         self.assertEqual(expected_handler_config, handler_config)
+
+    @mock.patch.object(
+        reporting, 'instantiated_handler_registry', reporting.DictRegistry())
+    @mock.patch.object(reporting, 'available_handlers')
+    def test_handlers_removed_if_falseish_specified(self, available_handlers):
+        handler_type_name = 'test_handler'
+        handler_cls = mock.Mock()
+        available_handlers.registered_items = {handler_type_name: handler_cls}
+        handler_name = 'my_test_handler'
+        reporting.update_configuration(
+            {handler_name: {'type': handler_type_name}})
+        self.assertEqual(
+            1, len(reporting.instantiated_handler_registry.registered_items))
+        reporting.update_configuration({handler_name: None})
+        self.assertEqual(
+            0, len(reporting.instantiated_handler_registry.registered_items))
 
 
 class TestReportingEventStack(TestCase):
