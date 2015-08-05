@@ -46,6 +46,11 @@ class ReportingEvent(object):
         return '{0}: {1}: {2}'.format(
             self.event_type, self.name, self.description)
 
+    def as_dict(self):
+        """The event represented as a dictionary."""
+        return {'name': self.name, 'description': self.description,
+                'event_type': self.event_type}
+
 
 class FinishReportingEvent(ReportingEvent):
 
@@ -60,9 +65,30 @@ class FinishReportingEvent(ReportingEvent):
         return '{0}: {1}: {2}: {3}'.format(
             self.event_type, self.name, self.result, self.description)
 
+    def as_dict(self):
+        """The event represented as json friendly."""
+        data = super(FinishReportingEvent, self).as_dict()
+        data['result'] = self.result
+        return data
 
-def add_configuration(config):
+
+def update_configuration(config, reset=False):
+    """Update the instanciated_handler_registry.
+
+    :param config:
+        The dictionary containing changes to apply.
+
+    :param reset:
+        Reset the dictionary to the default.
+    """
+    if reset:
+        instantiated_handler_registry.reset()
+
     for handler_name, handler_config in config.items():
+        if not handler_config:
+            instantiated_handler_registry.unregister_item(
+                handler_name, force=True)
+            continue
         handler_config = handler_config.copy()
         cls = available_handlers.registered_items[handler_config.pop('type')]
         instance = cls(**handler_config)
@@ -214,4 +240,4 @@ class ReportEventStack(object):
             report_finish_event(self.fullname, msg, result)
 
 
-add_configuration(DEFAULT_CONFIG)
+update_configuration(DEFAULT_CONFIG, reset=True)
