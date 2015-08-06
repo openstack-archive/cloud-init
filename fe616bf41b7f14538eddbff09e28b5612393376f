@@ -1,0 +1,9 @@
+Verified+2: Jenkins
+Code-Review+2: Scott Moser <smoser@ubuntu.com>
+Code-Review+2: Claudiu Popa <cpopa@cloudbasesolutions.com>
+Workflow+1: Claudiu Popa <cpopa@cloudbasesolutions.com>
+Submitted-by: Jenkins
+Submitted-at: Thu, 06 Aug 2015 17:46:18 +0000
+Reviewed-on: https://review.openstack.org/209696
+Project: stackforge/cloud-init
+Branch: refs/heads/master
