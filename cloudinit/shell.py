@@ -46,6 +46,8 @@ def main(args=sys.argv):
     populate_parser(parser, COMMON_ARGS, SUBCOMMANDS)
     parsed = parser.parse_args(args[1:])
 
+    if not hasattr(parsed, 'func'):
+        parser.error('too few arguments')
     parsed.func(parsed)
     return 0
 

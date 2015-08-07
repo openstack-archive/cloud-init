@@ -3,8 +3,9 @@
 #
 # vi: ts=4 expandtab
 
-import cloudinit.shell as shell
+import six
 
+import cloudinit.shell as shell
 from cloudinit.tests import TestCase
 from cloudinit.tests.util import mock
 
@@ -29,3 +30,19 @@ class TestMain(TestCase):
         shell.main(args=['cloud-init', 'version'])
         write_arg = mock_out_write.write.call_args[0][0]
         self.assertTrue(write_arg.startswith('cloud-init'))
+
+    @mock.patch('cloudinit.shell.sys.stderr', new_callable=six.StringIO)
+    def test_no_arguments_shows_usage(self, stderr):
+        self.assertRaises(SystemExit, shell.main, args=['cloud-init'])
+        self.assertIn('usage: cloud-init', stderr.getvalue())
+
+    @mock.patch('cloudinit.shell.sys.stderr', mock.MagicMock())
+    def test_no_arguments_exits_2(self):
+        exc = self.assertRaises(SystemExit, shell.main, args=['cloud-init'])
+        self.assertEqual(2, exc.code)
+
+    @mock.patch('cloudinit.shell.sys.stderr', new_callable=six.StringIO)
+    def test_no_arguments_shows_error_message(self, stderr):
+        self.assertRaises(SystemExit, shell.main, args=['cloud-init'])
+        self.assertIn('cloud-init: error: too few arguments',
+                      stderr.getvalue())
