@@ -4,7 +4,6 @@
 # vi: ts=4 expandtab
 
 import collections
-import logging
 import os
 import re
 
@@ -14,6 +13,9 @@ try:
     JINJA_AVAILABLE = True
 except (ImportError, AttributeError):
     JINJA_AVAILABLE = False  # noqa
+
+from cloudinit import logging
+
 
 LOG = logging.getLogger(__name__)
 TYPE_MATCHER = re.compile(r"##\s*template:(.*)", re.I)

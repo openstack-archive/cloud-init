@@ -3,7 +3,6 @@
 #
 # vi: ts=4 expandtab
 
-import logging
 import time
 
 try:
@@ -28,6 +27,7 @@ from six.moves.http_client import CONFLICT  # noqa
 from six.moves.http_client import MULTIPLE_CHOICES as _MULTIPLE_CHOICES
 from six.moves.http_client import OK
 
+from cloudinit import logging
 from cloudinit import version
 
 
