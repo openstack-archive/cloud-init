@@ -63,3 +63,38 @@ class TestStrategy(tests.TestCase):
             valid_sources = list(instance.search_data_sources(sources))
 
         self.assertEqual(available_sources, valid_sources)
+
+    def test_filter_version_strategy(self):
+        class SourceV1(object):
+            def version(self):
+                return 'first'
+
+        class SourceV2(SourceV1):
+            def version(self):
+                return 'second'
+
+        class SourceV3(object):
+            def version(self):
+                return 'third'
+
+        sources = [SourceV1(), SourceV2(), SourceV3()]
+        instance = strategy.FilterVersionStrategy(['third', 'first'])
+
+        filtered_sources = sorted(
+            source.version()
+            for source in instance.search_data_sources(sources))
+
+        self.assertEqual(len(filtered_sources), 2)
+        self.assertEqual(filtered_sources, ['first', 'third'])
+
+    def test_filter_version_strategy_no_versions_given(self):
+        class SourceV1(object):
+            def version(self):
+                return 'first'
+
+        sources = [SourceV1()]
+        instance = strategy.FilterVersionStrategy()
+
+        filtered_sources = list(instance.search_data_sources(sources))
+
+        self.assertEqual(len(filtered_sources), 0)

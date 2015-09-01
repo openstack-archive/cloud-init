@@ -140,6 +140,10 @@ class BaseDataSource(object):
         This should return an instance of :class:`APIResponse`.
         """
 
+    @abc.abstractmethod
+    def version(self):
+        """Get the version of the current data source."""
+
     def instance_id(self):
         """Get this instance's id."""
 

@@ -77,3 +77,22 @@ class SerialSearchStrategy(BaseSearchStrategy):
         for data_source in data_sources:
             if self.is_datasource_available(data_source):
                 yield data_source
+
+
+class FilterVersionStrategy(BaseSearchStrategy):
+    """A strategy for filtering data sources by their version
+
+    :param versions:
+        A list of strings, where each strings is a possible
+        version that a data source can have.
+    """
+
+    def __init__(self, versions=None):
+        if versions is None:
+            versions = []
+        self._versions = versions
+        super(FilterVersionStrategy, self).__init__()
+
+    def search_data_sources(self, data_sources):
+        return (source for source in data_sources
+                if source.version() in self._versions)

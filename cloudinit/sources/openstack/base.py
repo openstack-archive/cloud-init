@@ -50,6 +50,10 @@ class BaseOpenStackSource(base.BaseDataSource):
     def _path_join(self, path, *addons):
         """Join one or more components together."""
 
+    def version(self):
+        """Get the underlying data source version."""
+        return self._version
+
     def _working_version(self):
         versions = self._available_versions()
         # OS_VERSIONS is stored in chronological order, so
