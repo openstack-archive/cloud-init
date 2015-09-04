@@ -4,9 +4,14 @@
 # vi: ts=4 expandtab
 
 import argparse
+import contextlib
 import sys
 
-from cloudinit import logging
+from taskflow import engines
+from taskflow.listeners import logging as logging_listener
+from taskflow.persistence import backends, models
+
+from cloudinit import flows, logging
 from cloudinit.version import version_string
 
 
@@ -60,6 +65,38 @@ def main_version(args):
     sys.stdout.write("cloud-init {0}\n".format(version_string()))
 
 
+def run_flow(flow_name):
+
+    def run_flow_command(_):
+        flow = flows.get_all_flow()
+        flow.set_target(flows.FLOWS[flow_name])
+        persistence = backends.fetch({
+            'connection': 'sqlite:////tmp/taskflow.db',
+        })
+        with contextlib.closing(persistence.get_connection()) as conn:
+            conn.upgrade()
+            for book in conn.get_logbooks():
+                if book.name == 'cloud-init':
+                    flow_detail = book.find(
+                        '6c1a3f09-8a58-426f-bffb-8262680fcb67')
+                    break
+            else:
+                book = models.LogBook('cloud-init')
+                flow_detail = models.FlowDetail(
+                    "all-the-things", '6c1a3f09-8a58-426f-bffb-8262680fcb67')
+                book.add(flow_detail)
+                conn.save_logbook(book)
+        e = engines.load(
+            flow, backend=persistence, flow_detail=flow_detail, book=book)
+        e.compile()
+        print(e.compilation.execution_graph.pformat())
+
+        with logging_listener.DynamicLoggingListener(e):
+            e.run()
+
+    return run_flow_command
+
+
 def unimplemented_subcommand(args):
     raise NotImplementedError(
         "sub command '{0}' is not implemented".format(args.name))
@@ -77,11 +114,11 @@ SUBCOMMANDS = {
         'help': 'locate and apply networking configuration',
     },
     'search': {
-        'func': unimplemented_subcommand,
+        'func': run_flow('search'),
         'help': 'search available data sources',
     },
     'config': {
-        'func': unimplemented_subcommand,
+        'func': run_flow('config'),
         'help': 'run available config modules',
     },
     'config-final': {
@@ -94,7 +131,7 @@ SUBCOMMANDS = {
         'help': 'print cloud-init version',
     },
     'all': {
-        'func': unimplemented_subcommand,
+        'func': run_flow('all'),
         'help': 'run all stages as if from boot',
         'opts': [
             (('--clean',),
