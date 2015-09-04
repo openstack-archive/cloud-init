@@ -95,7 +95,7 @@ def configure_logging(log_to_console=False):
         },
         'handlers': {
             'console': {
-                'level': 'INFO',
+                'level': 'DEBUG',
                 'class': 'logging.StreamHandler',
                 'formatter': 'standard',
             },
