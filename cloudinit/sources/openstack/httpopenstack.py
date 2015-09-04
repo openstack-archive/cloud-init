@@ -89,6 +89,7 @@ class HttpOpenStackSource(baseopenstack.BaseOpenStackSource):
         return 'openstack/%s/password' % self._version
 
     def load(self):
+        return True
         metadata_url = self._config['metadata_url']
         self._enable_metadata_access(metadata_url)
         super(HttpOpenStackSource, self).load()
