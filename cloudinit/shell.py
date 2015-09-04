@@ -7,6 +7,7 @@ import argparse
 import sys
 
 from cloudinit import logging
+from cloudinit.version import version_string
 
 
 def populate_parser(parser, common, subcommands):
@@ -56,8 +57,7 @@ def main(args=sys.argv):
 
 
 def main_version(args):
-    sys.stdout.write("cloud-init 1.9\n")
-    return
+    sys.stdout.write("cloud-init {0}\n".format(version_string()))
 
 
 def unimplemented_subcommand(args):
