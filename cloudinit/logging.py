@@ -103,7 +103,7 @@ def configure_logging(log_to_console=False):
         'loggers': {
             '': {
                 'handlers': [],
-                'level': 'DEBUG',
+                'level': 0,
                 'propagate': True,
             },
         },
