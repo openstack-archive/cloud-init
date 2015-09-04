@@ -6,6 +6,8 @@
 import argparse
 import sys
 
+from cloudinit import logging
+
 
 def populate_parser(parser, common, subcommands):
     """Populate an ArgumentParser with data rather than code
@@ -48,6 +50,7 @@ def main(args=sys.argv):
 
     if not hasattr(parsed, 'func'):
         parser.error('too few arguments')
+    logging.configure_logging(log_to_console=parsed.log_to_console)
     parsed.func(parsed)
     return 0
 
@@ -63,6 +66,7 @@ def unimplemented_subcommand(args):
 
 
 COMMON_ARGS = [
+    (('--log-to-console',), {'action': 'store_true', 'default': False}),
     (('--verbose', '-v'), {'action': 'count', 'default': 0}),
 ]
 

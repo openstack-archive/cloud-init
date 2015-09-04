@@ -46,3 +46,18 @@ class TestMain(TestCase):
         self.assertRaises(SystemExit, shell.main, args=['cloud-init'])
         self.assertIn('cloud-init: error: too few arguments',
                       stderr.getvalue())
+
+
+class TestLoggingConfiguration(TestCase):
+
+    @mock.patch('cloudinit.shell.sys.stderr', new_callable=six.StringIO)
+    def test_log_to_console(self, stderr):
+        shell.main(args=['cloud-init', '--log-to-console', 'version'])
+        shell.logging.getLogger().info('test log message')
+        self.assertIn('test log message', stderr.getvalue())
+
+    @mock.patch('cloudinit.shell.sys.stderr', new_callable=six.StringIO)
+    def test_log_to_console_not_default(self, stderr):
+        shell.main(args=['cloud-init', 'version'])
+        shell.logging.getLogger().info('test log message')
+        self.assertNotIn('test log message', stderr.getvalue())

@@ -40,6 +40,7 @@ class _BlatherLoggerAdapter(logging.LoggerAdapter):
 
 # TODO(harlowja): we should remove when we no longer have to support 2.6...
 if sys.version_info[0:2] == (2, 6):  # pragma: nocover
+    from logutils.dictconfig import dictConfig
 
     class _FixedBlatherLoggerAdapter(_BlatherLoggerAdapter):
         """Ensures isEnabledFor() exists on adapters that are created."""
@@ -72,6 +73,7 @@ if sys.version_info[0:2] == (2, 6):  # pragma: nocover
             self.lock = None
 
 else:
+    from logging.config import dictConfig
     _NullHandler = logging.NullHandler
 
 
@@ -80,3 +82,32 @@ def getLogger(name=_BASE, extra=None):
     if not logger.handlers:
         logger.addHandler(_NullHandler())
     return _BlatherLoggerAdapter(logger, extra=extra)
+
+
+def configure_logging(log_to_console=False):
+    logging_config = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'standard': {
+                'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+            },
+        },
+        'handlers': {
+            'console': {
+                'level': 'INFO',
+                'class': 'logging.StreamHandler',
+                'formatter': 'standard',
+            },
+        },
+        'loggers': {
+            '': {
+                'handlers': [],
+                'level': 'DEBUG',
+                'propagate': True,
+            },
+        },
+    }
+    if log_to_console:
+        logging_config['loggers']['']['handlers'].append('console')
+    dictConfig(logging_config)
