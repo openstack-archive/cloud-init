@@ -2,6 +2,7 @@
 # This file is part of cloud-init.  See LICENCE file for license information.
 #
 # vi: ts=4 expandtab
+import json
 
 from cloudinit.sources import base as base_source
 from cloudinit.sources.openstack import base
@@ -83,10 +84,10 @@ class TestBaseOpenStackSource(tests.TestCase):
     @mock.patch('cloudinit.sources.openstack.base.BaseOpenStackSource.'
                 '_get_cache_data')
     def test_get_content(self, mock_get_cache_data, mock_path_join):
-        result = self._source._get_content(mock.sentinel.name)
+        result = self._source._get_content('test_filename')
 
         mock_path_join.assert_called_once_with(
-            'openstack', 'content', mock.sentinel.name)
+            'openstack', 'content', 'test_filename')
         mock_get_cache_data.assert_called_once_with(
             mock_path_join.return_value)
         self.assertEqual(mock_get_cache_data.return_value, result)
@@ -102,7 +103,7 @@ class TestBaseOpenStackSource(tests.TestCase):
             'openstack', self._source._version, 'user_data')
         mock_get_cache_data.assert_called_once_with(
             mock_path_join.return_value)
-        self.assertEqual(mock_get_cache_data.return_value.buffer, result)
+        self.assertEqual(mock_get_cache_data.return_value, result)
 
     @mock.patch('cloudinit.sources.openstack.base.BaseOpenStackSource.'
                 '_path_join')
@@ -124,13 +125,14 @@ class TestBaseOpenStackSource(tests.TestCase):
     @mock.patch('cloudinit.sources.openstack.base.BaseOpenStackSource.'
                 '_get_cache_data')
     def test_vendor_data(self, mock_get_cache_data, mock_path_join):
+        mock_get_cache_data.return_value = '{"test": "dict"}'
         result = self._source.vendor_data()
 
         mock_path_join.assert_called_once_with(
             'openstack', self._source._version, 'vendor_data.json')
         mock_get_cache_data.assert_called_once_with(
             mock_path_join.return_value)
-        self.assertEqual(mock_get_cache_data.return_value.buffer, result)
+        self.assertEqual(json.loads(mock_get_cache_data.return_value), result)
 
     @mock.patch('cloudinit.sources.openstack.base.BaseOpenStackSource.'
                 '_working_version')
