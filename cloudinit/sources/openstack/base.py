@@ -65,27 +65,34 @@ class BaseOpenStackSource(base.BaseDataSource):
         LOG.debug("Selected version %r from %s", selected_version, versions)
         return selected_version
 
-    def _get_content(self, name):
-        path = self._path_join('openstack', 'content', name)
-        return self._get_cache_data(path)
-
-    def _get_meta_data(self):
-        path = self._path_join('openstack', self._version, 'meta_data.json')
-        data = self._get_cache_data(path)
-        if data:
-            return json.loads(str(data))
-
     def load(self):
         self._version = self._working_version()
         super(BaseOpenStackSource, self).load()
 
+    def _get_data_helper(self, filename, sub_path):
+        path = self._path_join('openstack', sub_path, filename)
+        data = self._get_cache_data(path)
+        if data and filename.endswith('json'):
+            return json.loads(str(data))
+        elif data:
+            return data
+        else:
+            return dict()
+
+    def _get_content(self, name):
+        return self._get_data_helper(name, 'content')
+
+    def _get_meta_data(self):
+        return self._get_data_helper('meta_data.json', self._version)
+
     def user_data(self):
-        path = self._path_join('openstack', self._version, 'user_data')
-        return self._get_cache_data(path).buffer
+        return self._get_data_helper('user_data', self._version)
 
     def vendor_data(self):
-        path = self._path_join('openstack', self._version, 'vendor_data.json')
-        return self._get_cache_data(path).buffer
+        return self._get_data_helper('vendor_data.json', self._version)
+
+    def network_data(self):
+        return self._get_data_helper('network_data.json', self._version)
 
     def instance_id(self):
         return self._get_meta_data().get('uuid')
@@ -100,15 +107,18 @@ class BaseOpenStackSource(base.BaseDataSource):
         return []
 
     def network_config(self):
-        network_config = self._get_meta_data().get('network_config')
-        if not network_config:
-            return None
-        if _PAYLOAD_KEY not in network_config:
-            return None
+        net_config = self.network_data()
+        if all(net_config.get(x) for x in ['links', 'networks', 'services']):
+            pass  # TODO(Nate): process network json
+        else:
+            for source in [self._get_meta_data(), self.vendor_data()]:
+                net_config = source.get(
+                    'network_config', {})
 
-        content_path = network_config[_PAYLOAD_KEY]
-        content_name = os.path.basename(content_path)
-        return str(self._get_content(content_name))
+                if _PAYLOAD_KEY in net_config:
+                    content_path = net_config[_PAYLOAD_KEY]
+                    content_name = os.path.basename(content_path)
+                    return str(self._get_content(content_name))
 
     def admin_password(self):
         meta_data = self._get_meta_data()
