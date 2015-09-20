@@ -49,6 +49,12 @@ class HttpOpenStackSource(baseopenstack.BaseOpenStackSource):
             return version
         return VERSION_REGEX.match(version)
 
+    def user_data(self):
+        return super(HttpOpenStackSource, self).user_data().buffer
+
+    def vendor_data(self):
+        return super(HttpOpenStackSource, self).vendor_data()
+
     def _available_versions(self):
         content = str(self._get_cache_data("openstack"))
         versions = list(filter(None, content.splitlines()))
