@@ -53,7 +53,7 @@ class HttpOpenStackSource(baseopenstack.BaseOpenStackSource):
         return super(HttpOpenStackSource, self).user_data().buffer
 
     def vendor_data(self):
-        return super(HttpOpenStackSource, self).vendor_data().buffer
+        return super(HttpOpenStackSource, self).vendor_data()
 
     def _available_versions(self):
         content = str(self._get_cache_data("openstack"))
