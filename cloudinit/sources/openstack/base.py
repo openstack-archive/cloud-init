@@ -109,7 +109,7 @@ class BaseOpenStackSource(base.BaseDataSource):
     def network_config(self):
         net_config = self.network_data()
         if all(net_config.get(x) for x in ['links', 'networks', 'services']):
-            pass  # TODO(Nate): process network json
+            return net_config  # returns dict
         else:
             for source in [self._get_meta_data(), self.vendor_data()]:
                 net_config = source.get(
