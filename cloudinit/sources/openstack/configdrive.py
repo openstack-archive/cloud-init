@@ -8,6 +8,7 @@ import os
 import posixpath
 import re
 import subprocess
+import tempfile
 
 from cloudinit import exceptions
 from cloudinit.osys import base
@@ -21,31 +22,31 @@ IS_WINDOWS = os.name == 'nt'
 # but should be enough for our use case.
 VERSION_REGEX = re.compile('^\d{4}-\d{2}-\d{2}$')
 OSUTILS = base.get_osutils()
+TMP_DIR = os.path.join(tempfile.gettempdir(), 'config-2')
 
 
 class ConfigDriveSource(base_os.BaseOpenStackSource):
     """Class for exporting the ConfigDrive data source."""
 
     datasource_config = {
-        'cd_dir': '/tmp/config-2/',
-        'dev_path': '/dev/disk/by-label/config-2',  # linux specific?
+        'dev_path': '/dev/disk/by-label/config-2',  # linux specific
         'fs_types': ('vfat', 'iso9660'),
     }
 
     @staticmethod
     def cd_mounter(func):
         """Decorator to handle mounting and umounting."""
-        def wrapper(args):
-            subprocess.popen(['mkdir', '-p', '/tmp/config-2']).communicate()
+        def wrapper(*args, **kwargs):
+            subprocess.popen(['mkdir', '-p', TMP_DIR]).communicate()
             for fs in ('vfat', 'iso9660'):
                 try:
                     subprocess.check_call(
                         ['mount', '-t', fs, '/dev/disk/by-label/config-2',
-                            '/tmp/config-2'])
+                            TMP_DIR])
                 except subprocess.CalledProcessError:
                     LOG.debug('ConfigDrive not mounted as %s', fs)
-            func(args)
-        subprocess.popen(['umount', '/tmp/config-2']).communicate()
+            func(*args, **kwargs)
+            subprocess.popen(['umount', TMP_DIR]).communicate()
         return wrapper
 
     @staticmethod
@@ -69,31 +70,28 @@ class ConfigDriveSource(base_os.BaseOpenStackSource):
             if not self._valid_api_version(version):
                 msg = 'Invalid ConfigDrive version %r' % (version,)
                 raise exceptions.CloudInitError(msg)
-
         return versions
 
     @cd_mounter
     def _get_data(self, path):
-        norm_path = self._path_join(self._config['cd_dir'], path)
+        norm_path = os.path.join(TMP_DIR, path)
         LOG.debug('Getting metadata from: %s', norm_path)
         if os.path.isfile(norm_path):
             with open(path, 'r') as data:
                 cd_data = data.read()
-            return base_source.APIResponse(cd_data, encoding='utf-8')
+            return base_source.APIResponse(cd_data)
         elif os.path.isdir(norm_path):
             dir_data = '\n'.join(os.listdir(norm_path))
-            return base_source.APIResponse(dir_data, encoding='utf-8')
+            return base_source.APIResponse(dir_data)
 
         msg = "Metadata for path {0} was not accessible."
-        return
         raise exceptions.CloudInitError(msg.format(norm_path))
 
     def load(self):
-        if os.path.exists(self.datasource_config['dev_path']):
-            continue
-        elif IS_WINDOWS:
-            pass  # TODO(Any): check config-2 label
-        else:
+        if IS_WINDOWS:
+            # TODO(Any): check config-2 label
+            pass
+        elif not os.path.exists(self.datasource_config['dev_path']):
             return False
 
         super(ConfigDriveSource, self).load()
@@ -102,7 +100,7 @@ class ConfigDriveSource(base_os.BaseOpenStackSource):
             self._get_meta_data()
             return True
         except Exception:
-            LOG.warning('ConfigDrive partition with Metadata not found.')
+            LOG.warning('ConfigDrive with Metadata not found.')
             return False
 
     @property
