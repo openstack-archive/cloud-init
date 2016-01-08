@@ -1,0 +1,10 @@
+Code-Review+1: venkatamahesh <venkatamaheshkotha@gmail.com>
+Code-Review+1: Reedip <reedip.banerjee@nectechnologies.in>
+Code-Review+2: Joshua Harlow <harlowja@yahoo-inc.com>
+Workflow+1: Joshua Harlow <harlowja@yahoo-inc.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Fri, 08 Jan 2016 23:19:42 +0000
+Reviewed-on: https://review.openstack.org/261718
+Project: openstack/cloud-init
+Branch: refs/heads/master
