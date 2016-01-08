@@ -6,7 +6,7 @@ To get changes into cloud-init, the process to follow is:
 
 * Fork from github, create a branch and make your changes
 
-  - ``git clone https://github.com/stackforge/cloud-init``
+  - ``git clone https://github.com/openstack/cloud-init``
   - ``cd cloud-init``
   - ``echo hack``
 
