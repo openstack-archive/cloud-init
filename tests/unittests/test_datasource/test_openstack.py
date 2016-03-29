@@ -65,6 +65,10 @@ OSTACK_META = {
 }
 CONTENT_0 = b'This is contents of /etc/foo.cfg\n'
 CONTENT_1 = b'# this is /etc/bar/bar.cfg\n'
+
+OSTACK_NET_DATA = {
+    'lo': {'auto': True, 'ipv6': {}}, 'eth6': {'auto': True, 'address': '192.168.123.26', 'dns-nameservers': ['192.168.123.1'], 'gateway': '192.168.123.1', 'broadcast': '192.168.123.255', 'netmask': '255.255.255.0', 'bootproto': 'static', 'ipv6': {'address': '2001:4998:44:2804::72/120', 'secondaries': ['2001:4998:44:2804::73/120', '2001:4998:44:2804::74/120'], 'dns-nameservers': [], 'gateway': '2001:4998:44:2804::1'}, 'inet6': True}, 'eth6:0': {'auto': True, 'ipv6': {'gateway': None, 'secondaries': [], 'dns-nameservers': [], 'address': None}, 'dns-nameservers': ['192.168.123.1'], 'inet6': False, 'broadcast': '192.168.123.255', 'netmask': '255.255.255.0', 'bootproto': 'static', 'address': '192.168.123.201', 'gateway': '192.168.123.1'}}
+
 OS_FILES = {
     'openstack/latest/meta_data.json': json.dumps(OSTACK_META),
     'openstack/latest/user_data': USER_DATA,
@@ -314,6 +318,23 @@ class TestOpenStackDataSource(test_helpers.HttprettyTestCase):
         found = ds_os.get_data()
         self.assertFalse(found)
         self.assertIsNone(ds_os.version)
+
+    @hp.activate
+    def test_json_net_data(self):
+        os_files = copy.deepcopy(OS_FILES)
+        os_files['openstack/latest/net_data.json'] = json.dumps(OSTACK_NET_DATA)
+        _register_uris(self.VERSION, EC2_FILES, EC2_META, os_files)
+        f = ds.read_metadata_service(BASE_URL)
+
+        self.assertEquals(True, f.get('network'))
+        self.assertEquals(OSTACK_NET_DATA, f.get('network_config'))
+
+    @hp.activate
+    def test_network_debian_blob(self):
+        _register_uris(self.VERSION, EC2_FILES, EC2_META, OS_FILES)
+        f = ds.read_metadata_service(BASE_URL)
+
+        self.assertEquals(None, f.get('network'))
 
 
 class TestVendorDataLoading(test_helpers.TestCase):

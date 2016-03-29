@@ -63,14 +63,61 @@ class Distro(distros.Distro):
     def install_packages(self, pkglist):
         self.package_command('install', pkgs=pkglist)
 
-    def _write_network(self, settings):
+    def _detect_active_device(self):
+        (out, err) = util.subp(['ip', 'route'])
+        if len(err):
+            return None
+        for line in out.splitlines():
+           if line.startswith('default'):
+               return line.split()[-1]
+        return None
+
+    def _update_entries_with_active_device(self, entries):
+        # NOTE(suro): active device replacement is for eth0
+        act_dev = self._detect_active_device()
+        if act_dev is None:
+            return
+        # NOTE(suro): device used in configuration is detected with a minimal
+        #             logic now - the first non-'lo' interface => eth0 most
+        #             of the cases
+        dev_names = entries.keys()
+        if act_dev in dev_names:
+            # NOTE(suro): If cfg for active interface exists, we have no work
+            return
+        conf_dev = None
+        for dev in dev_names:
+            if dev == 'lo':
+               continue
+            conf_dev = dev.split(':')[0]
+            break
+        if conf_dev is None:
+            return
+        keys_to_be_removed = []
+        appex = {}
+        for dev in entries:
+            if dev.startswith(conf_dev):
+                mod_dev = dev.replace(conf_dev, act_dev, 1)
+                keys_to_be_removed.append(dev)
+                appex[mod_dev] = entries[dev]
+        for dev in keys_to_be_removed:
+            del entries[dev]
+        for dev, det in appex.items():
+            entries[dev] = det
+        LOG.debug("Entries after replacement \n%s", entries)
+
+    def _write_network(self, settings, json_config=False):
         # TODO(harlowja) fix this... since this is the ubuntu format
-        entries = net_util.translate_network(settings)
+        if json_config is True:
+            entries = settings
+        else:
+            entries = net_util.translate_network(settings)
+
         LOG.debug("Translated ubuntu style network settings %s into %s",
                   settings, entries)
         # Make the intermediate format as the rhel format...
         nameservers = []
         searchservers = []
+        self._update_entries_with_active_device(entries)
         dev_names = entries.keys()
         use_ipv6 = False
         for (dev, info) in entries.items():
@@ -92,6 +139,9 @@ class Distro(distros.Distro):
                     'IPV6ADDR': info.get('ipv6').get('address'),
                     'IPV6_DEFAULTGW': info.get('ipv6').get('gateway'),
                 })
+                if info.get('ipv6').get('secondaries'):
+                    sec = '"' + ' '.join(info.get('ipv6')['secondaries']) + '"'
+                    net_cfg.update({'IPV6ADDR_SECONDARIES': sec })
             rhel_util.update_sysconfig_file(net_fn, net_cfg)
             if 'dns-nameservers' in info:
                 nameservers.extend(info['dns-nameservers'])
