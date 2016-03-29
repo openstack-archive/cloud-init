@@ -212,7 +212,8 @@ def on_first_boot(data, distro=None):
     net_conf = data.get("network_config", '')
     if net_conf and distro:
         LOG.debug("Updating network interfaces from config drive")
-        distro.apply_network(net_conf)
+        json_config = data.get("network", False)
+        distro.apply_network(net_conf, json_config=json_config)
     files = data.get('files', {})
     if files:
         LOG.debug("Writing %s injected files", len(files))

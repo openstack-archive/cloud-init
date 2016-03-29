@@ -60,7 +60,7 @@ class Distro(distros.Distro):
         self.update_package_sources()
         self.package_command('', pkgs=pkglist)
 
-    def _write_network(self, settings):
+    def _write_network(self, settings, json_config=False):
         entries = net_util.translate_network(settings)
         LOG.debug("Translated ubuntu style network settings %s into %s",
                   settings, entries)
