@@ -72,7 +72,7 @@ class Distro(distros.Distro):
         self.update_package_sources()
         self.package_command('install', pkgs=pkglist)
 
-    def _write_network(self, settings):
+    def _write_network(self, settings, json_config=False):
         util.write_file(self.network_conf_fn, settings)
         return ['all']
 

@@ -46,6 +46,9 @@ EC2_META = {
     'reservation-id': 'r-iru5qm4m',
     'security-groups': ['default']
 }
+OSTACK_NET_DATA = {
+    'lo': {'auto': True, 'ipv6': {}}, 'eth6': {'auto': True, 'address': '192.168.123.26', 'dns-nameservers': ['192.168.123.1'], 'gateway': '192.168.123.1', 'broadcast': '192.168.123.255', 'netmask': '255.255.255.0', 'bootproto': 'static', 'ipv6': {'address': '2001:4998:44:2804::72/120', 'secondaries': ['2001:4998:44:2804::73/120', '2001:4998:44:2804::74/120'], 'dns-nameservers': [], 'gateway': '2001:4998:44:2804::1'}, 'inet6': True}, 'eth6:0': {'auto': True, 'ipv6': {'gateway': None, 'secondaries': [], 'dns-nameservers': [], 'address': None}, 'dns-nameservers': ['192.168.123.1'], 'inet6': False, 'broadcast': '192.168.123.255', 'netmask': '255.255.255.0', 'bootproto': 'static', 'address': '192.168.123.201', 'gateway': '192.168.123.1'}}
+
 USER_DATA = b'#!/bin/sh\necho This is user data\n'
 OSTACK_META = {
     'availability_zone': 'nova',
@@ -70,7 +73,8 @@ CFG_DRIVE_FILES_V2 = {
   'openstack/content/0000': CONTENT_0,
   'openstack/content/0001': CONTENT_1,
   'openstack/latest/meta_data.json': json.dumps(OSTACK_META),
-  'openstack/latest/user_data': USER_DATA}
+  'openstack/latest/user_data': USER_DATA,
+  'openstack/latest/net_data.json': json.dumps(OSTACK_NET_DATA)}
 
 
 class TestConfigDriveDataSource(TestCase):
@@ -320,7 +324,6 @@ class TestConfigDriveDataSource(TestCase):
         myds = cfg_ds_from_dir(self.tmp)
         self.assertEqual(myds.get_public_ssh_keys(),
            [OSTACK_META['public_keys']['mykey']])
-
 
 def cfg_ds_from_dir(seed_d):
     found = ds.read_config_drive(seed_d)

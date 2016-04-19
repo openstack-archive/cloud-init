@@ -219,6 +219,11 @@ class BaseReader(object):
                 # Translator function (applied after loading)
                 util.load_json,
             )
+            files['network'] = (
+                self._path_join("openstack", version, 'net_data.json'),
+                False,
+                util.load_json,
+            )
             files['userdata'] = (
                 self._path_join("openstack", version, 'user_data'),
                 False,
@@ -295,6 +300,9 @@ class BaseReader(object):
             except IOError as e:
                 raise BrokenMetadata("Failed to read network"
                                      " configuration: %s" % (e))
+        if 'network' in results:
+            results['network_config'] = results['network']
+            results['network'] = True
 
         # To openstack, user can specify meta ('nova boot --meta=key=value')
         # and those will appear under metadata['meta'].

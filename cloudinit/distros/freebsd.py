@@ -268,7 +268,7 @@ class Distro(distros.Distro):
             keys = set(kwargs['ssh_authorized_keys']) or []
             ssh_util.setup_user_keys(keys, name, options=None)
 
-    def _write_network(self, settings):
+    def _write_network(self, settings, json_config=False):
         entries = net_util.translate_network(settings)
         nameservers = []
         searchdomains = []

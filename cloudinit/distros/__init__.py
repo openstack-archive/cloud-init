@@ -69,7 +69,7 @@ class Distro(object):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def _write_network(self, settings):
+    def _write_network(self, settings, json_config=False):
         # In the future use the http://fedorahosted.org/netcf/
         # to write this blob out in a distro format
         raise NotImplementedError()
@@ -117,9 +117,9 @@ class Distro(object):
         return _get_package_mirror_info(availability_zone=availability_zone,
                                         mirror_info=arch_info)
 
-    def apply_network(self, settings, bring_up=True):
+    def apply_network(self, settings, bring_up=True, json_config=False):
         # Write it out
-        dev_names = self._write_network(settings)
+        dev_names = self._write_network(settings, json_config)
         # Now try to bring them up
         if bring_up:
             return self._bring_up_interfaces(dev_names)

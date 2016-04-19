@@ -53,7 +53,7 @@ class Distro(distros.Distro):
     def install_packages(self, pkglist):
         self.package_command('install', args='-l', pkgs=pkglist)
 
-    def _write_network(self, settings):
+    def _write_network(self, settings, json_config=False):
         # Convert debian settings to ifcfg format
         entries = net_util.translate_network(settings)
         LOG.debug("Translated ubuntu style network settings %s into %s",
