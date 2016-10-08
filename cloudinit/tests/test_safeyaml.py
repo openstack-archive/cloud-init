@@ -31,8 +31,7 @@ class TestSafeYaml(TestCase):
         self.assertRaises(yaml.YAMLError, yaml.loads, blob)
 
     def test_dumps_returns_string(self):
-        self.assertTrue(
-            isinstance(yaml.dumps(867 - 5309), (str,)))
+        self.assertIsInstance(yaml.dumps(867 - 5309), (str,))
 
     def test_dumps_is_loadable(self):
         mydata = {'a': 'hey', 'b': ['bee', 'Bea']}
