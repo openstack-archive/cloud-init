@@ -110,7 +110,7 @@ class TestFinishReportingEvent(TestCase):
         name, desc = 'test_name', 'test_desc'
         event = reporting.FinishReportingEvent(name, desc, result)
         ret = event.as_dict()
-        self.assertTrue('result' in ret)
+        self.assertIn('result', ret)
         self.assertEqual(ret['result'], result)
 
 
