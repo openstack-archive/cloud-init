@@ -124,8 +124,8 @@ def _get_ssl_args(url, ssl_details):
     scheme = urlparse(url).scheme
     if scheme == 'https' and ssl_details:
         if not SSL_ENABLED:
-            LOG.warn("SSL is not supported, "
-                     "cert. verification can not occur!")
+            LOG.warning("SSL is not supported, "
+                        "cert. verification can not occur!")
         else:
             if 'ca_certs' in ssl_details and ssl_details['ca_certs']:
                 ssl_args['verify'] = ssl_details['ca_certs']
