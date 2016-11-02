@@ -1,6 +1,11 @@
 Cloud-init
 ==========
 
+**Note**: This is a "version 2" branch of cloud-init, that has laid idle
+for some time.  To contribute to active cloud-init series, see
+  https://git.launchpad.net/cloud-init/tree/HACKING.rst
+
+
 *Cloud-init initializes systems for cloud environments.*
 
 Join us
