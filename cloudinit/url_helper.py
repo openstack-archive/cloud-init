@@ -18,12 +18,10 @@ from requests import structures
 # Arg, why does requests vendorize urllib3....
 from requests.packages.urllib3 import util as urllib3_util
 
-from six.moves.urllib.parse import quote as urlquote  # noqa
 from six.moves.urllib.parse import urlparse  # noqa
 from six.moves.urllib.parse import urlunparse  # noqa
 
 from six.moves.http_client import BAD_REQUEST as _BAD_REQUEST
-from six.moves.http_client import CONFLICT  # noqa
 from six.moves.http_client import MULTIPLE_CHOICES as _MULTIPLE_CHOICES
 from six.moves.http_client import OK
 
