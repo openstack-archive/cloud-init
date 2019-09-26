@@ -1,2 +1,0 @@
-version=3
-https://launchpad.net/cloud-init/+download .*/\+download/cloud-init-(.+)\.tar.gz
